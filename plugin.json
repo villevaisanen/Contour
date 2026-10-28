@@ -1,0 +1,27 @@
+{
+  "slug": "Contour",
+  "name": "Contour",
+  "version": "2.1.0",
+  "license": "proprietary",
+  "brand": "Filth Assembly",
+  "author": "Ville V\u00e4is\u00e4nen",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Contour",
+      "name": "Contour",
+      "description": "Animated contour paths with four XY modulation sources",
+      "tags": [
+        "Low-frequency oscillator",
+        "Random",
+        "Visual"
+      ]
+    }
+  ]
+}

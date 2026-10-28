@@ -1,0 +1,21 @@
+# Ignore all dotfiles except git dotfiles
+.*
+!.git*
+
+# Binaries and build targets
+*.a
+*.so
+*.dylib
+*.dll
+/build
+/dep
+/dist
+
+# Build output
+/build/
+/dist/
+*.o
+*.so
+*.dylib
+*.dll
+*.vcvplugin
