@@ -5,8 +5,7 @@
 #include <thread>
 using namespace contour;
 namespace contourRack {
-NVGcolor colors[4] = {nvgRGB(255, 185, 75), nvgRGB(75, 214, 231),
-                      nvgRGB(235, 110, 172), nvgRGB(162, 221, 103)};
+const NVGcolor lime = nvgRGBA(0xb9, 0xea, 0x09, 0xff);
 struct Frame {
   Geometry geometry;
   std::array<Ball, 4> balls;
@@ -199,12 +198,6 @@ struct Contour : Module {
 struct Display : Widget {
   Contour *module = nullptr;
   Frame frame;
-  void draw(const DrawArgs &args) override {
-    nvgBeginPath(args.vg);
-    nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
-    nvgFillColor(args.vg, nvgRGB(12, 18, 23));
-    nvgFill(args.vg);
-  }
   void drawLayer(const DrawArgs &args, int layer) override {
     if (layer != 1)
       return;
@@ -215,7 +208,7 @@ struct Display : Widget {
                  5 + (1 - p.y) * (box.size.y - 10));
     };
     nvgSave(args.vg);
-    nvgScissor(args.vg, 0, 0, box.size.x, box.size.y);
+    nvgIntersectScissor(args.vg, 0, 0, box.size.x, box.size.y);
     for (int i = 0; i < frame.geometry.count; i++) {
       const auto &l = frame.geometry.loops[i];
       nvgBeginPath(args.vg);
@@ -228,8 +221,7 @@ struct Display : Widget {
       }
       nvgClosePath(args.vg);
       nvgStrokeWidth(args.vg, 1);
-      nvgStrokeColor(args.vg, nvgRGBA(155 + 20 * l.level, 182 + 15 * l.level,
-                                      195 + 12 * l.level, 210));
+      nvgStrokeColor(args.vg, lime);
       nvgStroke(args.vg);
     }
     auto font =
@@ -240,7 +232,7 @@ struct Display : Widget {
       Vec p = point(frame.balls[i].position);
       nvgBeginPath(args.vg);
       nvgCircle(args.vg, p.x, p.y, 6);
-      nvgFillColor(args.vg, colors[i]);
+      nvgFillColor(args.vg, lime);
       nvgFill(args.vg);
       nvgFillColor(args.vg, nvgRGB(15, 20, 25));
       nvgFontSize(args.vg, 9);
@@ -250,38 +242,80 @@ struct Display : Widget {
     nvgRestore(args.vg);
   }
 };
+// Draw both supplied SVGs about their actual circular centers. Only the top
+// rotates; the static base (including its lighting and shadow) stays fixed.
+struct ContourKnob : Knob {
+  std::shared_ptr<Svg> base, top;
+  ContourKnob() {
+    minAngle = -0.75f * M_PI;
+    maxAngle = 0.75f * M_PI;
+    box.size = mm2px(Vec(14.382292f, 14.382292f));
+    base = Svg::load(asset::plugin(pluginInstance, "res/knob_static.svg"));
+    top = Svg::load(asset::plugin(pluginInstance, "res/knob_top.svg"));
+  }
+  void draw(const DrawArgs &args) override {
+    auto *quantity = getParamQuantity();
+    float value = quantity ? quantity->getScaledValue() : 0.5f;
+    float angle = minAngle + value * (maxAngle - minAngle);
+    float scale = box.size.x / mm2px(14.382292f);
+    nvgSave(args.vg);
+    nvgTranslate(args.vg, box.size.x / 2, box.size.y / 2);
+    nvgScale(args.vg, scale, scale);
+    nvgSave(args.vg);
+    nvgTranslate(args.vg, -mm2px(6.843878f), -mm2px(6.843881f));
+    window::svgDraw(args.vg, base->handle);
+    nvgRestore(args.vg);
+    nvgRotate(args.vg, angle);
+    nvgTranslate(args.vg, -mm2px(4.768337f), -mm2px(5.066264f));
+    window::svgDraw(args.vg, top->handle);
+    nvgRestore(args.vg);
+  }
+};
+struct VelocityKnob : ContourKnob {
+  VelocityKnob() { box.size = mm2px(Vec(8, 8)); }
+};
+struct ContourPort : SvgPort {
+  ContourPort() {
+    setSvg(Svg::load(asset::plugin(pluginInstance, "res/jack.svg")));
+    shadow->opacity = 0;
+  }
+};
 struct ContourWidget : ModuleWidget {
   ContourWidget(Contour *module) {
     setModule(module);
-    setPanel(createPanel(asset::plugin(pluginInstance, "res/Contour.svg")));
-    box.size = Vec(24 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
+    setPanel(createPanel(asset::plugin(pluginInstance, "res/Contour_panel.svg")));
+    box.size = Vec(20 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
     auto *display = new Display;
     display->module = module;
-    display->box.pos = mm2px(Vec(28.46f, 8));
-    display->box.size = mm2px(Vec(65, 65));
+    display->box.pos = mm2px(Vec(21.4f, 11.5f));
+    display->box.size = mm2px(Vec(59, 59));
     addChild(display);
     auto knob = [&](float x, float y, int id) {
-      addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(x, y)),
-                                                        module, id));
+      addParam(createParamCentered<ContourKnob>(mm2px(Vec(x, y)), module, id));
     };
     auto in = [&](float x, float y, int id) {
-      addInput(createInputCentered<PJ301MPort>(mm2px(Vec(x, y)), module, id));
+      addInput(createInputCentered<ContourPort>(mm2px(Vec(x, y)), module, id));
     };
-    knob(10, 19, Contour::BALLS);
-    knob(10, 40, Contour::CONTOURS);
-    knob(10, 61, Contour::SLEW);
-    knob(108, 21, Contour::EVOLVE);
-    in(108, 32, Contour::EVOLVE_CV);
-    knob(108, 52, Contour::FRACTALITY);
-    in(108, 63, Contour::FRACTALITY_CV);
+    // Coordinates from the panel's components layer, in millimeters.
+    knob(10.158777f, 20, Contour::BALLS);
+    knob(10.158777f, 40, Contour::CONTOURS);
+    knob(10.158777f, 60, Contour::SLEW);
+    knob(91.486679f, 19.996662f, Contour::EVOLVE);
+    in(91.486679f, 32, Contour::EVOLVE_CV);
+    knob(91.486679f, 51.162865f, Contour::FRACTALITY);
+    in(91.486679f, 63, Contour::FRACTALITY_CV);
+    const float velocityX[] = {18.151552f, 40.234154f, 62.288799f, 84.301758f};
+    const Vec velocityCV[] = {{18.151552f, 92.04052f}, {40.192844f, 92.04052f},
+                              {62.079422f, 91.984695f}, {84.294342f, 91.984695f}};
+    const float outputX[] = {18.160337f, 32.711632f, 47.262932f, 61.86422f};
     for (int i = 0; i < 4; i++) {
-      float x = 18 + 28 * i;
-      knob(x, 86, Contour::VEL1 + i);
-      in(x, 98, Contour::VEL1_CV + i);
-      addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(x - 6, 115)), module,
-                                                 2 * i));
-      addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(x + 6, 115)), module,
-                                                 2 * i + 1));
+      addParam(createParamCentered<VelocityKnob>(
+          mm2px(Vec(velocityX[i], 82.670471f)), module, Contour::VEL1 + i));
+      in(velocityCV[i].x, velocityCV[i].y, Contour::VEL1_CV + i);
+      addOutput(createOutputCentered<ContourPort>(
+          mm2px(Vec(outputX[i], 110.0976f)), module, 2 * i));
+      addOutput(createOutputCentered<ContourPort>(
+          mm2px(Vec(outputX[i], 120.01434f)), module, 2 * i + 1));
     }
   }
 };

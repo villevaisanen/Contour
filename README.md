@@ -1,12 +1,18 @@
-# Contour 0.1.0 — Filth Assembly
+# Contour 0.1.1 — Filth Assembly
 
-Ensimmäinen toimiva VCV Rack 2 -prototyyppi: animoidun Perlin-maaston suljetut
+VCV Rack 2 -moduuli: animoidun Perlin-maaston suljetut
 korkeuskäyrät ohjaavat enintään neljää itsenäistä XY-modulaatiopalloa.
-24 HP:n paneelissa näkyvät vain viivakäyrät ja numeroidut pallot.
+20 HP:n paneelissa näkyvät vain viivakäyrät ja numeroidut pallot.
+
+Version 0.1.1 muutokset koskevat vain ulkoasua: uusi 20 HP:n paneeli,
+kaksiosaiset 270° nupit, 8 mm:n Velocity-nupit ja omat SVG-jakit.
+Läpinäkyvä 59 × 59 mm:n näyttö on kohdassa (21,4; 11,5) mm;
+pallot ja korkeuskäyrät ovat limenvihreitä (#b9ea09ff). DSP, parametrit,
+CV-käsittely ja tallennusmuoto ovat ennallaan.
 
 ## Versio ja ympäristö
 
-Kehitysversio **0.1.0** vastaa Rack-manifestin versiota **2.1.0**.
+Kehitysversio **0.1.1** vastaa Rack-manifestin versiota **2.1.1**.
 Rack edellyttää pluginin pääversion vastaavan Rackin pääversiota:
 [VCV:n manifestiohje](https://vcvrack.com/manual/Manifest#version).
 Pluginin ja moduulin slug on `Contour`; alkuperäiset brändi-, tekijä- ja
@@ -27,7 +33,7 @@ make test RACK_DIR="$HOME/Rack-SDK"
 make dist RACK_DIR="$HOME/Rack-SDK"
 ```
 
-Sulje Rack ennen asennusta. Kopioi `dist/Contour-2.1.0-lin-x64.vcvplugin`
+Sulje Rack ennen asennusta. Kopioi `dist/Contour-2.1.1-lin-x64.vcvplugin`
 Rackin käyttäjähakemiston `plugins-lin-x64`-kansioon. Linuxin tavallinen
 käyttäjähakemisto on `~/.local/share/Rack2`; tarkista käyttämäsi hakemisto
 Rackin **Help → Open user folder** -toiminnolla. Varmista ensin, ettei siellä
@@ -35,7 +41,7 @@ ole korvattavaa omaa Contour-versiota.
 
 ```sh
 mkdir -p ~/.local/share/Rack2/plugins-lin-x64
-cp -i dist/Contour-2.1.0-lin-x64.vcvplugin ~/.local/share/Rack2/plugins-lin-x64/
+cp -i dist/Contour-2.1.1-lin-x64.vcvplugin ~/.local/share/Rack2/plugins-lin-x64/
 ```
 
 Käynnistä Rack uudelleen, avaa moduuliselain hiiren oikealla painikkeella ja
@@ -52,8 +58,8 @@ LD_LIBRARY_PATH="$PWD" ./Rack ~/dev/vcv/Contour/tests/Scope.vcv
 ```
 
 Asennuspaketti sisältää myös README:n ja Scope-testipatchin. Pakettia ei ole
-asennettu varsinaiseen käyttäjäprofiiliin; GUI-koe käytti erillistä
-`/tmp/contour-rack-test`-käyttäjähakemistoa.
+asennettu varsinaiseen käyttäjäprofiiliin; version 0.1.1 GUI-koe käytti
+erillistä `/tmp/contour-011-gui`-käyttäjähakemistoa.
 
 ## Säätimet ja jännitteet
 
@@ -131,14 +137,11 @@ uudelleen samalla kohinan seedillä.
 ## Toteutus ja rajat
 
 `src/core.hpp` on Rackista riippumaton algoritmiydin. `src/Contour.cpp`
-liittää sen Rackiin ja piirtää paneelin. `design/Contour.svg` sisältää
-muokattavat tekstit, `res/Contour.svg` samat tekstit poluiksi muunnettuna
-Rackin SVG-renderöijää varten. Paneelin uudelleenvienti:
-
-```sh
-inkscape design/Contour.svg --export-text-to-path --export-plain-svg \
-  --export-type=svg --export-filename=res/Contour.svg
-```
+liittää sen Rackiin ja piirtää paneelin. `res/Contour_panel.svg` sisältää
+uuden paneelin poluiksi muunnetuilla teksteillä; components-taso on
+piilotettu, ja sen merkkien keskipisteet määrittävät komponenttien paikat.
+`res/knob_static.svg` on paikallaan pysyvä pohja, `res/knob_top.svg`
+kiertyvä kansi ja `res/jack.svg` liitäntöjen grafiikka.
 
 Maastotyösäie laskee 96×96-kentän noin 30 Hz:llä. Marching squares käyttää
 ruudukon särmätunnisteita segmenttien liittämiseen ja asymptoottista
@@ -189,3 +192,10 @@ monien instanssien kuormaa ja muita käyttöjärjestelmiä ei ole varmennettu.
   avattiin oikeassa GUI:ssa; käyrät, pallot ja 1X/1Y-signaalit näkyivät.
 - Äänilaitteen pätkimättömyyttä, kattavaa pitkäkestoista suorituskykyä
   tai kaikkien käyttöliittymäsäätimien käsikäyttöä ei ole varmennettu.
+
+Version 0.1.1 varmennus: `make`, `make test` ja `make dist` onnistuivat.
+Rack Free 2.6.6 latasi manifestiversion 2.1.1 ja Scope-testipatchin.
+Oikeasta Rack-ikkunasta tarkistettiin uusi paneeli, SVG-nupit ja jakit,
+näytön ruudukon säilyminen sekä limenvihreät käyrät ja numeroidut pallot.
+Moduulin laskenta- ja tallennuskoodi on verrattu edelliseen committiin:
+se on muuttumaton. Ydinalgoritmitiedostoa ei muutettu.
