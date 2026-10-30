@@ -117,11 +117,12 @@ struct Contour : Module {
     configInput(FRACTALITY_CV, "Fractality");
     seed.store(random::u32());
     worker = std::thread([this] {
-      Terrain terrain;
+      Terrain terrain; // Small owner; large storage is allocated once on heap.
       while (!stopping.load()) {
         auto start = std::chrono::steady_clock::now();
-        auto g = terrain.build(seed.load(), time.load(), fractal.load(),
-                               levels.load());
+        const auto &g = terrain.build(seed.load(), time.load(), fractal.load(),
+                                      levels.load());
+        // Copy into the exclusively reserved mailbox slot before reusing g.
         terrainMail.write([&](Geometry &dest) { dest = g; });
         auto deadline = start + std::chrono::microseconds(33333);
         while (!stopping.load() && std::chrono::steady_clock::now() < deadline)

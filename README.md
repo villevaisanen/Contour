@@ -1,4 +1,4 @@
-# Contour 2.1.2 — Filth Assembly
+# Contour 2.1.3 — Filth Assembly
 
 Contour is a 20 HP modulation module for VCV Rack 2. Animated contour lines
 from a Perlin-noise landscape guide up to four independent balls. Each ball
@@ -75,9 +75,35 @@ previous positions or animation time. Reset generates a new seed.
 ## Installation
 
 For a Linux x64 package, close Rack and copy
-`Contour-2.1.2-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
+`Contour-2.1.3-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
 Rack's user folder. Use **Help → Open user folder** to locate it. Restart
 Rack, open the module browser, and search for **Contour**.
+
+## Building and testing
+
+Build with a C++11 compiler, GNU Make, and the VCV Rack 2 SDK. The default
+SDK path is `~/Rack-SDK`; override it with `RACK_DIR=/path/to/Rack-SDK`.
+Packaging also requires `jq` and `zstd`.
+
+```sh
+make -j4 RACK_DIR="$HOME/Rack-SDK"
+make test RACK_DIR="$HOME/Rack-SDK"
+make dist RACK_DIR="$HOME/Rack-SDK"
+```
+
+`make test-core` runs the core tests and the 512 KiB stack regression without
+Rack or its SDK. `make test-stack` runs only the stack regression, using
+POSIX pthread stack attributes; unsupported platforms report a clear skip.
+`make test-rack` requires the SDK and its Rack shared library and runs the
+module, worker, port, persistence, and concurrent-instance checks without
+a GUI. `make test` runs both groups. Assertions remain enabled in all tests.
+
+The optional `make test-equivalence` compares terrain, motion, and CV results
+bit for bit against release 2.1.2 for 768 terrains. It additionally requires
+Python 3, Git, and repository history containing commit `6abab03`.
+The build package is written to `dist/`; tests and build intermediates are
+excluded from the installation package. `tests/Scope.vcv` is an example
+patch requiring the VCV Fundamental plugin.
 
 ## License
 

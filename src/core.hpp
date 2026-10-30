@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <vector>
 namespace contour {
 constexpr int Grid = 96, MaxLoops = 48, Points = 192;
@@ -107,13 +108,34 @@ struct Noise {
 // Extraction runs only on the worker. Grid-edge IDs make stitching exact.
 class Terrain {
   int nextId = 1;
-  Geometry previous;
+  static constexpr int Edges = 2 * Grid * Grid;
+  // Per-instance worker storage. Allocate directly on the heap, including
+  // geometry construction: no large aggregate temporaries on the stack.
+  struct Workspace {
+    Geometry previous, result;
+    std::array<float, Grid * Grid> f;
+    std::array<std::array<int, 2>, Edges> links;
+    std::array<V, Edges> pos;
+    std::array<bool, Edges> seen;
+    std::vector<V> path;
+    std::vector<float> dist;
+    Loop loop;
+    Workspace() {
+      path.reserve(Edges);
+      dist.reserve(Edges + 1);
+    }
+  };
+  std::unique_ptr<Workspace> workspace;
 
 public:
-  Geometry build(uint32_t seed, float time, float fract, int levels) {
+  Terrain() : workspace(new Workspace) {}
+  // The returned geometry belongs to this Terrain and is valid until its next
+  // build. Consumers on another thread must copy it into exclusively owned
+  // storage before that build; the Rack mailbox does exactly this.
+  const Geometry &build(uint32_t seed, float time, float fract, int levels) {
     levels = std::max(0, std::min(4, levels));
     fract = clamp(fract);
-    std::array<float, Grid * Grid> f;
+    auto &f = workspace->f;
     Noise noise(seed);
     for (int y = 0; y < Grid; y++)
       for (int x = 0; x < Grid; x++) {
@@ -128,15 +150,17 @@ public:
         float window = std::sin(float(M_PI) * u) * std::sin(float(M_PI) * v);
         f[y * Grid + x] = window * (.58f + .55f * n / norm);
       }
-    Geometry out;
+    auto &out = workspace->result;
+    auto &previous = workspace->previous;
+    out.count = 0;
     constexpr float heights[] = {.20f, .32f, .44f, .56f};
-    constexpr int Edges = 2 * Grid * Grid;
     for (int lev = 0; lev < levels; lev++) {
-      std::array<std::array<int, 2>, Edges> links;
+      auto &links = workspace->links;
       for (auto &a : links)
         a = {{-1, -1}};
-      std::array<V, Edges> pos;
-      std::array<bool, Edges> seen{};
+      auto &pos = workspace->pos;
+      auto &seen = workspace->seen;
+      seen.fill(false);
       auto connect = [&](int a, int b) {
         auto put = [&](int p, int q) {
           if (links[p][0] < 0)
@@ -184,7 +208,8 @@ public:
       for (int start = 0; start < Edges; start++) {
         if (seen[start] || links[start][0] < 0)
           continue;
-        std::vector<V> path;
+        auto &path = workspace->path;
+        path.clear();
         int cur = start, prev = -1;
         bool closed = false;
         for (int k = 0; k < Edges; k++) {
@@ -202,7 +227,8 @@ public:
         }
         if (!closed || path.size() < 8)
           continue;
-        std::vector<float> dist(path.size() + 1, 0);
+        auto &dist = workspace->dist;
+        dist.assign(path.size() + 1, 0);
         float area = 0;
         V center{0, 0};
         for (size_t i = 0; i < path.size(); i++) {
@@ -214,7 +240,9 @@ public:
         if (dist.back() < .09f || std::abs(area) < .0004f ||
             out.count == MaxLoops)
           continue;
-        Loop l;
+        auto &l = workspace->loop;
+        l.id = 0;
+        l.age = 0;
         l.level = lev;
         l.perimeter = dist.back();
         l.area = std::abs(area) * .5f;
