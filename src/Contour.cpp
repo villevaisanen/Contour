@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Ville Väisänen
+
 #include "core.hpp"
 #include "plugin.hpp"
 #include <atomic>
@@ -262,7 +265,7 @@ struct ContourKnob : Knob {
     nvgTranslate(args.vg, box.size.x / 2, box.size.y / 2);
     nvgScale(args.vg, scale, scale);
     nvgSave(args.vg);
-    nvgTranslate(args.vg, -mm2px(6.843878f), -mm2px(6.843881f));
+    nvgTranslate(args.vg, -mm2px(7.191145f), -mm2px(7.191148f));
     window::svgDraw(args.vg, base->handle);
     nvgRestore(args.vg);
     nvgRotate(args.vg, angle);

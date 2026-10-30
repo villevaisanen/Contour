@@ -10,6 +10,8 @@
 /build
 /dep
 /dist
+/design
+/tests
 
 # Build output
 /build/

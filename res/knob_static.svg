@@ -7,6 +7,8 @@
    viewBox="0 0 14.382292 14.382293"
    version="1.1"
    id="svg1"
+   sodipodi:docname="knob_static.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -22,7 +24,16 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     showguides="true">
+     showguides="true"
+     inkscape:zoom="8.9406816"
+     inkscape:cx="12.638857"
+     inkscape:cy="8.5563946"
+     inkscape:window-width="2536"
+     inkscape:window-height="1390"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g46-3">
     <sodipodi:guide
        position="6.8554393,8.9730453"
        orientation="-1,0"
@@ -49,16 +60,6 @@
   <defs
      id="defs1">
     <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient32"
-       id="linearGradient683"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-144.25799,0.34354211)"
-       x1="152.82416"
-       y1="14.25724"
-       x2="156.97934"
-       y2="25.020264" />
-    <linearGradient
        id="linearGradient32"
        inkscape:collect="always">
       <stop
@@ -70,25 +71,12 @@
          offset="0.45484033"
          id="stop33" />
     </linearGradient>
-    <filter
-       inkscape:collect="always"
-       style="color-interpolation-filters:sRGB"
-       id="filter338-6"
-       x="-0.10909483"
-       y="-0.10909483"
-       width="1.2181897"
-       height="1.2181897">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.50509777"
-         id="feGaussianBlur338-1" />
-    </filter>
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient32"
        id="linearGradient684"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-207.75403,-101.02038)"
+       gradientTransform="translate(-207.40676,-100.67311)"
        x1="152.82416"
        y1="14.25724"
        x2="156.97934"
@@ -125,7 +113,7 @@
        xlink:href="#linearGradient41"
        id="linearGradient685"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-207.75403,-101.02038)"
+       gradientTransform="translate(-207.40677,-100.67311)"
        x1="152.82497"
        y1="15.543752"
        x2="156.93213"
@@ -170,18 +158,10 @@
        inkscape:label="knob"
        transform="translate(60.340715,89.0401)">
       <circle
-         style="display:inline;opacity:0.730784;fill:url(#linearGradient683);fill-opacity:1;stroke:none;stroke-width:1.48149;filter:url(#filter338-6)"
-         id="circle338-7"
-         cx="10.643761"
-         cy="19.78541"
-         r="5.5558758"
-         transform="matrix(1.0625042,0,0,1.0625042,-63.814049,-102.25333)"
-         inkscape:label="knob shadow" />
-      <circle
          style="display:inline;fill:url(#linearGradient684);fill-opacity:1;stroke:none;stroke-width:1.48149"
          id="circle7-5"
-         cx="-52.852276"
-         cy="-81.578514"
+         cx="-52.505009"
+         cy="-81.231247"
          r="5.5558758"
          inkscape:label="knob base" />
       <circle
@@ -194,8 +174,8 @@
       <ellipse
          style="display:inline;fill:none;fill-opacity:1;stroke:url(#linearGradient685);stroke-width:0.271;stroke-dasharray:none"
          id="ellipse8-9"
-         cx="-52.852272"
-         cy="-81.578514"
+         cx="-52.505009"
+         cy="-81.231247"
          inkscape:label="hilight"
          rx="4.7680001"
          ry="4.7683372" />
