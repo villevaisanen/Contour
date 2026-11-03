@@ -1,4 +1,4 @@
-# Contour 2.1.3 — Filth Assembly
+# Contour 2.1.4 — Filth Assembly
 
 Contour is a 20 HP modulation module for VCV Rack 2. Animated contour lines
 from a Perlin-noise landscape guide up to four independent balls. Each ball
@@ -17,6 +17,9 @@ for how quickly the landscape changes.
 
 For an XY display, connect an X/Y pair to the two inputs of a scope and
 select its XY mode.
+
+The panel follows Rack's light/dark panel preference, including changes made
+while the module is already in a patch.
 
 ## Controls
 
@@ -75,7 +78,7 @@ previous positions or animation time. Reset generates a new seed.
 ## Installation
 
 For a Linux x64 package, close Rack and copy
-`Contour-2.1.3-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
+`Contour-2.1.4-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
 Rack's user folder. Use **Help → Open user folder** to locate it. Restart
 Rack, open the module browser, and search for **Contour**.
 
@@ -104,6 +107,20 @@ Python 3, Git, and repository history containing commit `6abab03`.
 The build package is written to `dist/`; tests and build intermediates are
 excluded from the installation package. `tests/Scope.vcv` is an example
 patch requiring the VCV Fundamental plugin.
+
+## Release 2.1.4
+
+- Added native Rack light/dark panels with live theme switching.
+- Plugin display name and brand are **Filth Assembly**. The module name and
+  slug remain **Contour**.
+- The technical plugin slug remains `Contour` to preserve existing patches
+  (including `tests/Scope.vcv`) and the package directory. Rack only permits
+  letters, digits, hyphens, and underscores in slugs. Its
+  [manifest specification](https://vcvrack.com/manual/Manifest) requires
+  published slugs to remain stable. Any future slug migration must first be
+  coordinated with VCV Library and provide an explicit patch compatibility
+  plan; renaming the brand does not require that migration.
+- Control, port, and display positions and DSP are unchanged.
 
 ## License
 

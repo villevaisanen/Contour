@@ -287,7 +287,9 @@ struct ContourPort : SvgPort {
 struct ContourWidget : ModuleWidget {
   ContourWidget(Contour *module) {
     setModule(module);
-    setPanel(createPanel(asset::plugin(pluginInstance, "res/Contour_panel.svg")));
+    setPanel(createPanel(
+        asset::plugin(pluginInstance, "res/Contour_panel_light.svg"),
+        asset::plugin(pluginInstance, "res/Contour_panel_dark.svg")));
     box.size = Vec(20 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
     auto *display = new Display;
     display->module = module;
