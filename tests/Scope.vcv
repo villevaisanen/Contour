@@ -8,9 +8,9 @@
   "modules": [
     {
       "id": 1,
-      "plugin": "Contour",
+      "plugin": "FilthAssembly",
       "model": "Contour",
-      "version": "2.1.3",
+      "version": "2.1.4",
       "params": [],
       "data": {
         "seed": 1234

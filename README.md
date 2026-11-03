@@ -78,7 +78,7 @@ previous positions or animation time. Reset generates a new seed.
 ## Installation
 
 For a Linux x64 package, close Rack and copy
-`Contour-2.1.4-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
+`FilthAssembly-2.1.4-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
 Rack's user folder. Use **Help → Open user folder** to locate it. Restart
 Rack, open the module browser, and search for **Contour**.
 
@@ -113,13 +113,19 @@ patch requiring the VCV Fundamental plugin.
 - Added native Rack light/dark panels with live theme switching.
 - Plugin display name and brand are **Filth Assembly**. The module name and
   slug remain **Contour**.
-- The technical plugin slug remains `Contour` to preserve existing patches
-  (including `tests/Scope.vcv`) and the package directory. Rack only permits
-  letters, digits, hyphens, and underscores in slugs. Its
-  [manifest specification](https://vcvrack.com/manual/Manifest) requires
-  published slugs to remain stable. Any future slug migration must first be
-  coordinated with VCV Library and provide an explicit patch compatibility
-  plan; renaming the brand does not require that migration.
+- Before the first official VCV Library release, the technical plugin slug
+  changed from `Contour` to `FilthAssembly`. The plugin/module identifier is
+  now `FilthAssembly/Contour`, and packages use the `FilthAssembly` directory
+  and filename prefix. This identifier follows Rack's
+  [manifest specification](https://vcvrack.com/manual/Manifest).
+- Patches saved with the old plugin slug require migration: in the patch JSON,
+  change only module entries with `"plugin": "Contour"` to
+  `"plugin": "FilthAssembly"`, keeping `"model": "Contour"`. The included
+  `tests/Scope.vcv` example uses the new identifier. Back up patches before
+  editing them. Move any old `Contour` plugin installation and pending package
+  outside Rack's plugin directory before installing this version.
+- The existing Git tag `v2.1.4` points to the commit before this slug correction;
+  use the subsequent correction commit for the final `FilthAssembly` package.
 - Control, port, and display positions and DSP are unchanged.
 
 ## License
