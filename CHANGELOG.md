@@ -1,4 +1,10 @@
 # Changelog
+## 2.2.1 — 2026-11-13
+
+- Add module-specific manual links for Contour and Orbitals.
+- Add a plugin changelog link.
+- Add author email and author website
+- No DSP, audio routing or panel changes.
 
 ## 2.2.0 — 2026-11-13
 

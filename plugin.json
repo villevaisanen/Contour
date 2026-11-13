@@ -1,22 +1,23 @@
 {
   "slug": "FilthAssembly",
   "name": "Filth Assembly",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "license": "GPL-3.0-only",
   "brand": "Filth Assembly",
   "author": "Ville V\u00e4is\u00e4nen",
-  "authorEmail": "",
-  "authorUrl": "",
+  "authorEmail": "filthassembly@gmail.com",
+  "authorUrl": "https://filth-assembly.pages.dev",
   "pluginUrl": "https://github.com/villevaisanen/Filth-Assembly-Modules",
   "manualUrl": "https://github.com/villevaisanen/Filth-Assembly-Modules#readme",
   "sourceUrl": "https://github.com/villevaisanen/Filth-Assembly-Modules",
   "donateUrl": "",
-  "changelogUrl": "",
+  "changelogUrl": "https://github.com/villevaisanen/Filth-Assembly-Modules/blob/master/CHANGELOG.md",
   "modules": [
     {
       "slug": "Contour",
       "name": "Contour",
       "description": "Animated contour paths with four XY modulation sources",
+      "manualUrl": "https://github.com/villevaisanen/Filth-Assembly-Modules/blob/master/docs/Contour.md",
       "tags": [
         "Low-frequency oscillator",
         "Random",
@@ -27,6 +28,7 @@
       "slug": "Orbitals",
       "name": "Orbitals",
       "description": "Analytical hydrogen orbital oscillator",
+      "manualUrl": "https://github.com/villevaisanen/Filth-Assembly-Modules/blob/master/docs/orbitals/README.md",
       "tags": [
         "Oscillator"
       ]

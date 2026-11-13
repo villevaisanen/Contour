@@ -1,6 +1,6 @@
 # Filth Assembly — VCV Rack modules
 
-Stable version **2.2.0**, canonical plugin slug `FilthAssembly`, brand
+Stable version **2.2.1**, canonical plugin slug `FilthAssembly`, brand
 **Filth Assembly**. One plugin contains **Contour and Orbitals**. This version
 promotes the user-tested and approved 2.2.0-dev.4 implementation without changes
 to module behavior, DSP, controls, panel artwork or patch serialization.
