@@ -1,137 +1,142 @@
-# Contour 2.1.4 — Filth Assembly
+# Filth Assembly — VCV Rack modules
 
-Contour is a 20 HP modulation module for VCV Rack 2. Animated contour lines
-from a Perlin-noise landscape guide up to four independent balls. Each ball
-provides a pair of X and Y control voltages, turning the movement on screen
-into evolving modulation for your patch.
+Stable version **2.2.0**, canonical plugin slug `FilthAssembly`, brand
+**Filth Assembly**. One plugin contains **Contour and Orbitals**. This version
+promotes the user-tested and approved 2.2.0-dev.4 implementation without changes
+to module behavior, DSP, controls, panel artwork or patch serialization.
 
-![Contour module in VCV Rack](docs/contour_screenshot.png)
+## Contour
 
-## Getting started
+Contour is a 20 HP modulation source. Animated contour lines in a noise landscape
+guide up to four travellers, each producing a pair of X/Y control voltages.
+Use the evolving paths for filter, timbre, pan and other slow modulation.
 
-Add **Contour** by **Filth Assembly** from Rack's module browser. Connect a
-ball's numbered **X** and **Y** outputs to parameters you want to modulate,
-such as filter cutoff, oscillator timbre, panning, or effects. Start with the
-default settings, then adjust **Velocity** for movement speed and **Evolve**
-for how quickly the landscape changes.
+![Contour running in dark mode](docs/images/contour-dark.png)
 
-For an XY display, connect an X/Y pair to the two inputs of a scope and
-select its XY mode.
+[Contour manual](docs/Contour.md)
 
-The panel follows Rack's light/dark panel preference, including changes made
-while the module is already in a patch.
+## Orbitals
 
-## Controls
+Orbitals is an 18 HP oscillator that samples analytical hydrogen wavefunctions
+along a three-dimensional path. Select and mix two orbital states, shape the
+scan and watch the live dot-matrix field. L (MONO) provides an A/B mix; connecting
+R switches to separate A/L and B/R audio with balance control. Quiet paths are
+possible by design.
 
-| Control | Function |
-| --- | --- |
-| **Balls** | Sets the number of active balls, from 1 to 4. Default: 2. |
-| **Contours** | Shows 1–4 contour levels. Each level can contain several loops. Default: 3. |
-| **Evolve** | Sets the landscape's animation speed. Turn fully down to freeze it. Default: 35%. |
-| **Fractality** | Adjusts the landscape's detail and complexity. Default: 40%. |
-| **Slew** | Limits the speed at which balls join a new path. Higher settings make transitions faster. Default: 0.25 screen widths per second. |
-| **Velocity 1–4** | Sets each ball's speed along its contour. Turn fully down to stop travel along the path. Defaults: 40%, 45%, 50%, and 55%. |
+![Orbitals running in dark mode](docs/images/orbitals-dark.png)
 
-Evolve and Velocity use logarithmic speed ranges, with a small stop zone at
-the bottom. Evolve ranges from 0.002 to 0.5 noise time units per second;
-Velocity ranges from 0.005 to 2 screen widths per second. Slew ranges from
-0.02 to 4 screen widths per second.
+[Orbitals manual](docs/orbitals/README.md)
 
-Balls follow closed loops counterclockwise in the internal XY coordinates.
-Velocity controls distance travelled, so larger loops take longer to circle.
-A ball with Velocity at zero can still move as its contour changes or while
-joining a new path. Freezing Evolve stops landscape animation, but changing
-Fractality still reshapes the landscape.
+## Orbitals audio routing
 
-Slew controls transitions onto paths. Movement caused by a changing contour
-can exceed this limit once a ball is following the path. A slow Slew setting
-can leave a ball pursuing a moving path for an extended time.
+For mono, connect only **L (MONO)** to your VCA or mixer. MIX / BAL retains the
+previous equal-power A/B mix (including its identical-orbital special case),
+levels and 5 ms coefficient smoothing.
 
-## CV inputs and outputs
+For stereo, connect **L and R** to the left and right channels of a mixer or
+another stereo destination. **An R cable activates stereo mode**, even if L is
+unconnected. A goes only to L and B only to R. MIX / BAL becomes balance:
+center gives both at normal level; turning left attenuates R/B, turning right
+attenuates L/A. The endpoints leave only A/L or B/R. Gains never exceed unity.
+With only R connected you hear B according to balance (silent at full left).
+Cable changes take effect during processing without reloading the module.
 
-**Evolve**, **Fractality**, and all four **Velocity** controls have CV inputs.
-The input is added to the knob setting: +5 V adds the full control range and
-−5 V subtracts it, with the result clamped to the available range. Only the
-first channel of a polyphonic input is used. Unconnected inputs contribute
-0 V. Slew has no CV input.
+MIX CV applies in both modes: +0.1/V, CV limited to ±10 V and the resulting
+control clamped to 0…1. Stereo balance uses a continuous linear attenuation
+curve with 5 ms smoothing. LEVEL and the existing ±5 V safety limit still apply.
+The matrix display continues to show the A/B superposed field, not stereo meters.
+Three DSP engines run continuously to preserve mono and keep channel phase/filter
+histories ready during cable changes; this increases Orbitals CPU use.
 
-Each ball has two monophonic outputs, **X** and **Y**, ranging from −5 V to
-+5 V. Left and bottom are −5 V; right and top are +5 V. The center is 0 V
-on both axes. The numbered balls show the positions used for these outputs,
-including during transitions. Outputs update at audio rate.
+## Build and test
 
-## Paths and patch saving
+Run these commands from `~/dev/vcv/Filth-Assembly-Modules` (or your clone of
+[Filth-Assembly-Modules](https://github.com/villevaisanen/Filth-Assembly-Modules)).
 
-Balls prefer separate loops. When all loops are occupied, balls can share
-a path with different starting positions. A ball may move from a shared
-path to a free loop. If a path disappears, its ball seeks another one; if
-no paths are available, it holds its last position.
-
-Newly activated balls start at the center and move onto a path at the Slew
-speed. Reducing Balls removes the highest-numbered balls and fades their
-outputs to 0 V over 10 ms.
-
-Patches save the control settings and the landscape's random seed. Opening
-a saved patch restarts movement using that seed; it does not resume the
-previous positions or animation time. Reset generates a new seed.
-
-## Installation
-
-For a Linux x64 package, close Rack and copy
-`FilthAssembly-2.1.4-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
-Rack's user folder. Use **Help → Open user folder** to locate it. Restart
-Rack, open the module browser, and search for **Contour**.
-
-## Building and testing
-
-Build with a C++11 compiler, GNU Make, and the VCV Rack 2 SDK. The default
-SDK path is `~/Rack-SDK`; override it with `RACK_DIR=/path/to/Rack-SDK`.
-Packaging also requires `jq` and `zstd`.
+Requires a C++11 compiler, GNU Make, Rack 2 SDK, jq, tar and zstd. The tested SDK
+and runtime are Rack 2.6.6 on Linux x64. Override the default `~/Rack-SDK` as needed.
+Python 3 is required for migration/audio checks; NumPy only for optional spectrum.
 
 ```sh
 make -j4 RACK_DIR="$HOME/Rack-SDK"
 make test RACK_DIR="$HOME/Rack-SDK"
-make dist RACK_DIR="$HOME/Rack-SDK"
+make test-equivalence       # optional bit-exact Contour regression vs 2.1.2
+make spectrum               # optional Orbitals spectral diagnostic (NumPy)
+make dist                   # one FilthAssembly package with both modules
+make test-package           # inspect packaged manifest/assets/license
+make test-gui               # optional: installed Rack, display and OpenGL required
 ```
 
-`make test-core` runs the core tests and the 512 KiB stack regression without
-Rack or its SDK. `make test-stack` runs only the stack regression, using
-POSIX pthread stack attributes; unsupported platforms report a clear skip.
-`make test-rack` requires the SDK and its Rack shared library and runs the
-module, worker, port, persistence, and concurrent-instance checks without
-a GUI. `make test` runs both groups. Assertions remain enabled in all tests.
+`make test` runs Contour core/small-stack and Rack worker tests, Orbitals
+mathematical and concurrent visualization suites, actual combined-binary factory
+and persistence checks, the historical audio regression, and preservation/asset
+checks. `make test-core`, `make test-orbitals`, `make test-orbitals-visualization`,
+`make test-audio-regression` and `make test-migration` can run without Rack SDK.
+`make test-rack` needs the SDK and builds the combined plugin automatically.
 
-The optional `make test-equivalence` compares terrain, motion, and CV results
-bit for bit against release 2.1.2 for 768 terrains. It additionally requires
-Python 3, Git, and repository history containing commit `6abab03`.
-The build package is written to `dist/`; tests and build intermediates are
-excluded from the installation package. `tests/Scope.vcv` is an example
-patch requiring the VCV Fundamental plugin.
+All source, resources and historical audio-test fixtures are in this repository;
+the standalone Orbitals repository is not a build or test dependency. Build outputs
+are under `build/` and `dist/`. Assertions remain enabled in tests.
 
-## Release 2.1.4
+## Install
 
-- Added native Rack light/dark panels with live theme switching.
-- Plugin display name and brand are **Filth Assembly**. The module name and
-  slug remain **Contour**.
-- Before the first official VCV Library release, the technical plugin slug
-  changed from `Contour` to `FilthAssembly`. The plugin/module identifier is
-  now `FilthAssembly/Contour`, and packages use the `FilthAssembly` directory
-  and filename prefix. This identifier follows Rack's
-  [manifest specification](https://vcvrack.com/manual/Manifest).
-- Patches saved with the old plugin slug require migration: in the patch JSON,
-  change only module entries with `"plugin": "Contour"` to
-  `"plugin": "FilthAssembly"`, keeping `"model": "Contour"`. The included
-  `tests/Scope.vcv` example uses the new identifier. Back up patches before
-  editing them. Move any old `Contour` plugin installation and pending package
-  outside Rack's plugin directory before installing this version.
-- The existing Git tag `v2.1.4` points to the commit before this slug correction;
-  use the subsequent correction commit for the final `FilthAssembly` package.
-- Control, port, and display positions and DSP are unchanged.
+Back up patches and close Rack before changing its plugin installation. Copy
+`dist/FilthAssembly-2.2.0-lin-x64.vcvplugin` into Rack's user-folder
+`plugins-lin-x64` directory, or use `make install`. Restart Rack and search for
+**Filth Assembly**: both **Contour** and **Orbitals** should appear.
+
+Use **Help → Open user folder** in Rack to locate the folder. A combined package
+replaces the standalone `FilthAssembly` package; two packages with the same plugin
+slug cannot coexist. For development, prefer an isolated Rack user folder rather
+than replacing your working installation. The build does not install globally unless you run `make install`.
+
+## Development workflow and compatibility
+
+Develop on `dev`, keep commits reviewable, and build and run tests before
+merging approved versions into `master`. GitHub Releases and VCV Library updates
+are separate publication steps. The 2.2.0 source preparation does not create a
+GitHub Release or submit a Library update.
+
+Existing `FilthAssembly/Contour` patches retain their parameter, input, output,
+seed and model identity. Orbitals retains
+its ten parameter and six input IDs. Output ID 0 (formerly AUDIO) is now L (MONO);
+ID 1 (formerly X) is now R. Former Y/Z output IDs 2/3 are removed.
+Old X cables now carry B audio and activate stereo mode, changing L to A.
+Y/Z cables cannot be preserved; remove/repatch old coordinate connections manually.
+Full backward patch compatibility is not promised. Loading restarts its DSP
+state as before; only Rack parameters are serialized.
+
+Older `FilthAssemblyOrbital/ORBITAL` patches **are not automatically compatible**.
+Back up and migrate their module identifiers to `FilthAssembly/Orbitals` and
+remap input cables: FM/Sync were removed in the source's 2.1.2 worktree, and
+remaining input IDs changed there before this migration. Earlier `Contour/Contour`
+patches likewise need the plugin-slug correction documented in the Contour manual.
+
+The [migration record](docs/migrations/001-orbitals.md) documents the source
+commit, uncommitted source snapshot, files, licensing, changes and validation.
+See [changelog](CHANGELOG.md), [Orbitals mathematics](docs/orbitals/MATHEMATICS.md)
+and [historical Orbitals validation](docs/orbitals/VALIDATION.md).
+
+## Validation
+
+The Orbitals dev.4 visual changes and measurements are recorded in
+[docs/validation-dev.4.md](docs/validation-dev.4.md). The combined-plugin dev.3
+validation remains in [docs/validation-dev.3.md](docs/validation-dev.3.md).
+Only Linux x64 with Rack SDK/runtime 2.6.6 is covered. Builds for other platforms,
+subjective listening and CPU profiling with production patches remain separate
+checks. Existing dev.2 routing and compatibility limitations above still apply.
+
+The visually checked screenshots use the actual module widgets, DSP and Rack's OpenGL
+renderer at the same 4× scale, with live display frames and no cables or menus.
+Orbitals shows dev.4; the unchanged Contour image remains from dev.3.
+Regenerate them with `make test-gui`, then convert the dark `*-theme-1.ppm`
+files in `build/tests/` to PNG without scaling or altering their contents.
 
 ## License
 
 Copyright © 2026 Ville Väisänen / Filth Assembly.
 
-Contour's source code and artwork are licensed under the
-GNU General Public License, version 3 only (GPL-3.0-only).
-See [licence.txt](licence.txt) for the full license.
+**GPL-3.0-only** for the combined source, documentation and artwork. The owner
+explicitly authorized relicensing the imported Orbitals snapshot; historical
+source licensing and the grant are recorded in [LICENSES.md](LICENSES.md).
+The full license is [licence.txt](licence.txt).

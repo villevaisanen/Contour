@@ -1,0 +1,2 @@
+# Exact source diff: whitespace in the historical patch is provenance, not edits.
+docs/migrations/001-orbitals-worktree.patch -whitespace

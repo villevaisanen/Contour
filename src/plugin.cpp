@@ -8,4 +8,5 @@ Plugin *pluginInstance;
 void init(Plugin *p) {
   pluginInstance = p;
   p->addModel(modelContour);
+  p->addModel(modelOrbital);
 }

@@ -1,0 +1,199 @@
+{
+  "source_repository": "https://github.com/villevaisanen/orbitals.git",
+  "source_branch": "main",
+  "source_commit": "67fca58ef97b6d91c24d8ed68a743c13f2ca17c4",
+  "source_status": " D Filth_Assembly_ORBITAL_Design_Document.md\n M README.md\n M docs/MATHEMATICS.md\n M docs/VALIDATION.md\n M plugin.json\n M src/OrbitalModule.cpp\n M src/OrbitalModule.hpp\n M src/ui/OrbitalDisplay.hpp\n M src/ui/OrbitalDisplayModel.hpp\n M src/ui/OrbitalWidget.cpp\n M test/rack.cpp\n M test/visualization.cpp\n?? Filth_Assembly_Orbitals_Design_Document.md\n?? docs/Orbitals-light.png\n?? docs/Orbitals.png\n?? docs/panel-sources/orbitals_panel_dark.svg\n?? docs/panel-sources/orbitals_panel_light.svg\n?? res/jack.svg\n?? res/knob_static.svg\n?? res/knob_top.svg\n?? res/orbitals_panel_dark.svg\n?? res/orbitals_panel_light.svg\n",
+  "source_is_dirty": true,
+  "snapshot_note": "Import of current working tree, not a clean commit checkout; source repo unchanged. Tracked changes preserved as 001-orbitals-worktree.patch; untracked imported files are present under their mapped destination paths.",
+  "source_manifest": {
+    "slug": "FilthAssembly",
+    "name": "Filth Assembly",
+    "version": "2.1.2",
+    "license": "proprietary",
+    "brand": "Filth Assembly",
+    "author": "Filth Assembly",
+    "modules": [
+      {
+        "slug": "Orbitals",
+        "name": "Orbitals",
+        "description": "Analytical hydrogen orbital oscillator",
+        "tags": [
+          "Oscillator"
+        ]
+      }
+    ]
+  },
+  "destination_baseline": "ee059f160f27d8f9e4aff38980930f1da35da24e",
+  "destination_branch": "dev",
+  "files": [
+    {
+      "source": "Filth_Assembly_Orbitals_Design_Document.md",
+      "destination": "docs/orbitals/DESIGN.md",
+      "source_sha256": "496810194a00a4746f39853b9c020732fc3828fde5c6388c2b9fc37818509a12"
+    },
+    {
+      "source": "README.md",
+      "destination": "docs/orbitals/README.md",
+      "source_sha256": "c3f44b8ba5defd9a9c8f2f0e520b5c1e007cc26f05d15bd3f5fcff634d5fa993"
+    },
+    {
+      "source": "docs/MATHEMATICS.md",
+      "destination": "docs/orbitals/MATHEMATICS.md",
+      "source_sha256": "ca598abb2d9add4d51ddec9cc0cfb2e7c29bdb179fed446103806aa9a1c27f8f"
+    },
+    {
+      "source": "docs/ORBITAL.png",
+      "destination": "docs/orbitals/ORBITAL.png",
+      "source_sha256": "193688f1872455ce0049db6d104f5ac8c85ea0d7de92d46920116642aed865ce"
+    },
+    {
+      "source": "docs/Orbitals-light.png",
+      "destination": "docs/orbitals/Orbitals-light.png",
+      "source_sha256": "71f4ee239a421d936c49a7773d550e1a0fd8f4ef8a0112e41eb056a320eb53d8"
+    },
+    {
+      "source": "docs/Orbitals.png",
+      "destination": "docs/orbitals/Orbitals.png",
+      "source_sha256": "105a40ad2c5f4b19a20f89a75d7c01ca074ce236a0be4a0fd6a68c49617562d7"
+    },
+    {
+      "source": "docs/VALIDATION.md",
+      "destination": "docs/orbitals/VALIDATION.md",
+      "source_sha256": "263c4919d45ddf47d86350ff4773fd47cc3030fd0baa35aecbda31b3b1f90363"
+    },
+    {
+      "source": "docs/panel-source.svg",
+      "destination": "docs/orbitals/panel-source.svg",
+      "source_sha256": "a6f8000847edd76ee4d92c8c4cdbdaade8dfd7978d1f1f943029e5cb96e77b1c"
+    },
+    {
+      "source": "docs/panel-sources/orbitals_panel_dark.svg",
+      "destination": "docs/orbitals/panel-sources/orbitals_panel_dark.svg",
+      "source_sha256": "77421b085ae0f96e3b039ab6174539dfe88237dd4e4a401784eb8b61ea130d1f"
+    },
+    {
+      "source": "docs/panel-sources/orbitals_panel_light.svg",
+      "destination": "docs/orbitals/panel-sources/orbitals_panel_light.svg",
+      "source_sha256": "116452d41b4f07dc791376cbb81bc9ded39c665f00713085fc312a376ccd2464"
+    },
+    {
+      "source": "res/jack.svg",
+      "destination": "res/orbitals/jack.svg",
+      "source_sha256": "63899f57775652ad540f4167309447408bb4efd3b394b945bb4ec8d576b1d648"
+    },
+    {
+      "source": "res/knob_static.svg",
+      "destination": "res/orbitals/knob_static.svg",
+      "source_sha256": "8f3e32fbb4ac223d4e5b4d9760a3f92f762458cc6e61625ec366d3d29c362ea8"
+    },
+    {
+      "source": "res/knob_top.svg",
+      "destination": "res/orbitals/knob_top.svg",
+      "source_sha256": "9460b6325fd74fdfaf62e33a0baa31ef4bdc1747260aaa1a30020746ca136b2e"
+    },
+    {
+      "source": "res/orbitals_panel_dark.svg",
+      "destination": "res/orbitals/orbitals_panel_dark.svg",
+      "source_sha256": "cab8c71ef81fde25feb3aa1a4c2a3a33e40bb78a7f40146f4dbfb37348eb9bfe"
+    },
+    {
+      "source": "res/orbitals_panel_light.svg",
+      "destination": "res/orbitals/orbitals_panel_light.svg",
+      "source_sha256": "bc4420588a7cecb72baf9d12e85941c4a96120655284f1ac6af4adb0a343db2b"
+    },
+    {
+      "source": "src/OrbitalModule.cpp",
+      "destination": "src/orbitals/OrbitalModule.cpp",
+      "source_sha256": "647bbd4d18542c8d60d51c50d2502f05bf00cbdcb4b9fbdbd56b90db591feccb"
+    },
+    {
+      "source": "src/OrbitalModule.hpp",
+      "destination": "src/orbitals/OrbitalModule.hpp",
+      "source_sha256": "2e4a519ae1c2610dce79c52db2d4f9a2f015889fa543296c97a092abeb4cb191"
+    },
+    {
+      "source": "src/dsp/HydrogenOrbitals.hpp",
+      "destination": "src/orbitals/dsp/HydrogenOrbitals.hpp",
+      "source_sha256": "b1984aed5505e5b9d54e23ec40f7b2499063a09428b8e11ab369cd7952a9cb6e"
+    },
+    {
+      "source": "src/dsp/OrbitalEngine.hpp",
+      "destination": "src/orbitals/dsp/OrbitalEngine.hpp",
+      "source_sha256": "b50404d2d18e4c49c41d522e05b39f6421f1aa27f373be680c5be3a27a3ad51e"
+    },
+    {
+      "source": "src/dsp/Trajectory3D.hpp",
+      "destination": "src/orbitals/dsp/Trajectory3D.hpp",
+      "source_sha256": "51416fe57e9fa913f808d696f592e65ab8114d8b96822a9569e913b669a6ff11"
+    },
+    {
+      "source": "src/dsp/VisualizationState.hpp",
+      "destination": "src/orbitals/dsp/VisualizationState.hpp",
+      "source_sha256": "91aaf350d22ccda829bd79afe03d03d1f10ce04ea537c753652e688525410493"
+    },
+    {
+      "source": "src/ui/OrbitalDisplay.hpp",
+      "destination": "src/orbitals/ui/OrbitalDisplay.hpp",
+      "source_sha256": "25f8c9438d6d670a72cdad18969018ba453ec0550366dff29ef04b112bcbfb58"
+    },
+    {
+      "source": "src/ui/OrbitalDisplayModel.hpp",
+      "destination": "src/orbitals/ui/OrbitalDisplayModel.hpp",
+      "source_sha256": "ba8e4a42c1ff1d4d235853fdddc27c7393254dc23a70f27b10d81a6bccd02c03"
+    },
+    {
+      "source": "src/ui/OrbitalWidget.cpp",
+      "destination": "src/orbitals/ui/OrbitalWidget.cpp",
+      "source_sha256": "2db34964ce49f5b165e49b7b99ca48777ee3ff95ae35c050c1752ab70fc57685"
+    },
+    {
+      "source": "test/audio-regression.py",
+      "destination": "tests/orbitals/audio-regression.py",
+      "source_sha256": "5018cace36f84a7cd3f397e1c47304c5518a2e098b8604c8c8eff9b8701856b3"
+    },
+    {
+      "source": "test/rack.cpp",
+      "destination": "tests/orbitals/rack.cpp",
+      "source_sha256": "9544eb1665aebb77b327bd6b89ddf9ccb46d6e40f244f2080d19f0bd541359c3"
+    },
+    {
+      "source": "test/spectrum.cpp",
+      "destination": "tests/orbitals/spectrum.cpp",
+      "source_sha256": "a7871e776fd18f8fc44e16dc40d4a25cbe64e6b853c55afee58afbd8168eca78"
+    },
+    {
+      "source": "test/spectrum.py",
+      "destination": "tests/orbitals/spectrum.py",
+      "source_sha256": "e0117409ccd2c258216c9820665bf6ab71057d4c04752e66d1a08e7164d7aa88"
+    },
+    {
+      "source": "test/test.cpp",
+      "destination": "tests/orbitals/test.cpp",
+      "source_sha256": "f2849eb46dea4e4904ab03c38767a11ad27e01691a9e633dfdb5c96a6413b0ed"
+    },
+    {
+      "source": "test/visualization.cpp",
+      "destination": "tests/orbitals/visualization.cpp",
+      "source_sha256": "17562c3f988d619789012b52fc3256bf2e2baa462ed90c3f2f881bedb5c0b8c8"
+    }
+  ],
+  "unchanged_contour": {
+    "src/Contour.cpp": "8baf2295427f1f2751638dfdc0ac12789567535af94c53c9366f23ed4ddba33a",
+    "src/core.hpp": "e50c2cedfbc8172379eb151bd673f286ff599f3572e9881a9629d41ec8392d09",
+    "res/Contour.svg": "c3bcd983facecc6baafa093fbd42564d6b0d34bf186c91cbd52e7baff58e3a8a",
+    "res/knob_top.svg": "9460b6325fd74fdfaf62e33a0baa31ef4bdc1747260aaa1a30020746ca136b2e",
+    "res/knob_static.svg": "8f3e32fbb4ac223d4e5b4d9760a3f92f762458cc6e61625ec366d3d29c362ea8",
+    "res/jack.svg": "63899f57775652ad540f4167309447408bb4efd3b394b945bb4ec8d576b1d648",
+    "res/Contour_panel.svg": "e25adab301c5654441926e0e8a32ff5631dc808e4e9a4823202224e002cbe8ec",
+    "res/Contour_panel_dark.svg": "124c4c039e694523817a2c50934dcbc2c671e960903a15829776cfa92920fac0",
+    "res/Contour_panel_light.svg": "6810c8828f3a796a77f7fc20fe2af91d0ff303e54f811831353e2971f5c3446f"
+  },
+  "licensing_authorization": "2026-11-09: user explicitly authorized Orbitals code and artwork to be published as GPL-3.0-only; original source repository retains its existing licensing.",
+  "audio_baseline": {
+    "commit": "3d6b39ebfd799d11aae4be3eeb9fce9e66de3906",
+    "source": "src/dsp/OrbitalEngine.hpp",
+    "destination": "tests/orbitals/baseline/OrbitalEngine-v2.1.0.hpp",
+    "sha256": "7c0d342aaadd798540f9e0ec607423304f7f17e65bfdd4e184aef062b5f67c4c"
+  },
+  "worktree_patch_sha256": "590af2396d9396bb6e71c0c2accd8ef6c13b34f105411905d62f6f656fd48344"
+}

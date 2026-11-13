@@ -1,0 +1,878 @@
+diff --git c/Filth_Assembly_ORBITAL_Design_Document.md w/Filth_Assembly_ORBITAL_Design_Document.md
+deleted file mode 100644
+index 5439e4c..0000000
+--- c/Filth_Assembly_ORBITAL_Design_Document.md
++++ /dev/null
+@@ -1,310 +0,0 @@
+-# FILTH ASSEMBLY — ORBITAL
+-
+-**Design document · v0.1 · 31.10.2026**  
+-**Kohdealusta:** VCV Rack 2, C++  
+-**Tyyppi:** audiotaajuinen, kolmiulotteista aaltofunktiota lukeva oskillaattori  
+-**Status:** toteutuksen lähtöspesifikaatio
+-
+-> **Ydinajatus:** ORBITAL tuottaa ääntä näytteistämällä oikean vetyatomin (tai vedynkaltaisen yksielektronisen ionin) atomiorbitaalin etumerkillistä aaltofunktiota pisteessä, joka liikkuu ohjelmallisesti määriteltyä kolmiulotteista rataa pitkin. Rata ja aaltofunktion arvo lasketaan ajon aikana jokaiselle audionäytteelle. Wavetableja, 3D-tekstuuritaulukoita tai valmiita aaltomuotoja ei käytetä.
+-
+-## 1. Tavoite ja rajaus
+-
+-ORBITAL on oma oskillaattorityyppinsä, ei atomigrafiikalla koristeltu perinteinen syntetisaattori. Soitin hyödyntää aitojen kvanttimekaanisten aaltofunktioiden geometriaa, solmupintoja, säteittäisiä solmuja ja tilojen superpositiota äänenmuodostuksessa.
+-
+-**Tavoitteet**
+-
+-- Oikeat, analyyttiset vedynkaltaiset atomiorbitaalit; aluksi `Z = 1` (vety).
+-- Täysin reaaliaikainen kolmiulotteisen lukuradan ja kenttäarvon laskenta.
+-- Musiikillisesti säädettävä perustaajuuden ohjaus, 1 V/okt ja modulaariset CV-sisääntulot.
+-- Selkeä ero fysikaalisen perustan ja taiteellisen sonifikaation välillä.
+-- Reaaliaikaturvallinen C++-ydin, joka voidaan myöhemmin käyttää myös VST3-plugissa.
+-- Käsin kosketeltava, visuaalisesti kiinnostava modulaatio: radan sijainti, muoto, kallistus ja kentän rotaatio.
+-
+-**Ei tehdä v0.1:ssä:** elektronien simuloituja ratoja, Schrödingerin yhtälön numeerista ratkaisua, monielektronisten atomien approksimoituja orbitaaleja, 3D-wavetableja, tiedostosta ladattavia wavetableja, 16-äänistä polyfoniaa, fysikaalisen atomin sähkömagneettisen säteilyn mallia tai VST-versiota.
+-
+-## 2. Fysikaalinen perusta
+-
+-### 2.1 Stationaariset vedyn aaltofunktiot
+-
+-Lähtökohtana on vedynkaltaisen yhden elektronin Coulomb-potentiaalin normalisoitu tilafunktio:
+-
+-$$
+-\psi_{nlm}(r,\vartheta,\varphi)=R_{nl}(r)Y_l^m(\vartheta,\varphi).
+-$$
+-
+-Kvanttiluvut ovat `n >= 1`, `0 <= l < n` ja `-l <= m <= l`. Orbitaalin s-, p-, d- ja f-luokka vastaa `l = 0, 1, 2, 3`. Säteittäinen osa on
+-
+-$$
+-R_{nl}(r)=\sqrt{\left(\frac{2Z}{na_0}\right)^3\frac{(n-l-1)!}{2n(n+l)!}}\;e^{-\rho/2}\rho^l L_{n-l-1}^{2l+1}(\rho),
+-\qquad \rho=\frac{2Zr}{na_0}.
+-$$
+-
+-`a0` on Bohrin säde, `Z` ytimen varausluku ja `L` yleistetty Laguerre-polynomi. Toteutuksessa koordinaatit esitetään **Bohrin säteen yksiköissä**: `a0 = 1` laskennan mittayksikössä; oletusarvo `Z = 1`. Tämä on pelkkä yksikkövalinta, ei aaltofunktion muodon approksimaatio.
+-
+-### 2.2 Reaaliset orbitaalit
+-
+-Tavalliset kompleksiset palloharmoniset funktiot `Y_l^m` muunnetaan standardin mukaisiksi **reaalisiksi palloharmonisiksi** funktioiksi. Tämä tuottaa kemian tutut `p_x`, `p_y`, `p_z`, `d_xy`, `d_xz`, `d_yz`, `d_(x²−y²)` ja `d_z²` -muodot. Nämä ovat edelleen fysikaalisesti kelvollisia vedyn energian ominaistiloja (saman energian degeneroituneiden tilojen lineaarikombinaatioita).
+-
+-Käytä normalisoituja funktioita ja dokumentoi valittu vaihe-/etumerkkikonventio; eri lähteet voivat antaa vastakkaisen globaalin etumerkin samalle orbitaalille. Tämä ei muuta orbitaalin todennäköisyysjakaumaa mutta kääntää sonifioidun signaalin napaisuuden.
+-
+-**Äänilähde on `ψ`, ei `|ψ|²`.** Todennäköisyystiheys `|ψ|²` on aina epänegatiivinen, jolloin tärkeä napaisuus- ja solmupintatieto katoaisi. Aaltofunktion etumerkki/reaaliosa ei kuitenkaan ole suoraan fysikaalisesti mitattu äänenpaine: sen käyttäminen audiosignaalina on tarkoituksellinen sonifikaatiovalinta.
+-
+-### 2.3 Referenssifunktiot yksikkökoordinaateissa
+-
+-Alkuvaiheen yksikkötesteissä, kun `Z = a0 = 1`:
+-
+-$$
+-\psi_{1s}(x,y,z)=\frac{1}{\sqrt{\pi}}e^{-r},\quad r=\sqrt{x^2+y^2+z^2}.
+-$$
+-
+-$$
+-\psi_{2p_z}(x,y,z)=\frac{z}{4\sqrt{2\pi}}e^{-r/2}.
+-$$
+-
+-Nämä ovat oikeita normalisoituja vetyorbitaaleja, eivät pelkkiä niiden muotoa muistuttavia funktioita. Muiden tilojen evaluointi johdetaan samasta yleiskaavasta tai sitä vastaavista tarkasti normalisoiduista karteesisista polynomimuodoista.
+-
+-### 2.4 Mitä laite *ei* väitä
+-
+-Elektroni ei fysiikassa kierrä tässä määriteltyä audiotaajuista lukurataa. **Lukurata on virtuaalinen mittauspolku matemaattisen kentän sisällä.** Samoin oskillaattorin kuultu sävelkorkeus on lukunopeus, ei atomin elektronisen siirtymän todellinen taajuus. Mahdollinen tilojen ajallinen interpolointi tehdään musiikillisen ohjauksen ehdoilla, ei väitteenä reaalisesta atomidynamiikasta.
+-
+-## 3. Äänenmuodostuksen periaate
+-
+-### 3.1 Näytekohtainen laskenta
+-
+-Jokaisella audionäytteellä `k`:
+-
+-1. Päivitetään jatkuva vaihe `p ∈ [0, 1)` taajuudella `f`.
+-2. Muodostetaan vaihe `θ = 2πp`.
+-3. Lasketaan lukupään sijainti `q(θ) = (x, y, z)`.
+-4. Sovelletaan radan offset, rotaatio ja skaalatut koordinaatit.
+-5. Evaluoidaan valittujen reaalisten orbitaalien `ψ(q)` arvot suoraan analyyttisesti.
+-6. Muodostetaan painotettu summa (jos käytössä on kaksi tilaa).
+-7. Poistetaan tarpeellinen DC-komponentti, tehdään hallittu äänenvoimakkuusskaalaus ja kirjoitetaan lähtöjännite.
+-
+-$$
+-p_{k+1}=\operatorname{fract}\left(p_k+\frac{f_k}{f_s}\right),\qquad
+-s_k=\sum_{i=1}^{N} w_i\,\psi_i\!\left(\mathbf q(2\pi p_k)\right).
+-$$
+-
+-Oskillaattorin vaihe ja kentän geometrian ohjaus pidetään toisistaan erillään. Jatkuvaa vaihetta ei nollata, kun orbitaali tai radan asetukset muuttuvat.
+-
+-### 3.2 Kolmiulotteinen lukurata
+-
+-MVP:n ratageneraattori on **siirretty, skaalattu ja vaiheistettu suljettu Lissajous-rata**:
+-
+-$$
+-\begin{aligned}
+-x(\theta)&=c_x+A_x\cos(\theta),\\
+-y(\theta)&=c_y+A_y\sin(k_y\theta+\delta_y),\\
+-z(\theta)&=c_z+A_z\sin(k_z\theta+\delta_z).
+-\end{aligned}
+-$$
+-
+-- `c`: keskipisteen sijainti suhteessa ytimeen.
+-- `A`: amplitudit / ulottuvuudet akseleilla.
+-- `k_y`, `k_z`: kokonaislukuiset suhdeluvut; v0.1: 1–4.
+-- `δ`: akselien vaihe-erot.
+-- `ROTATION`: koko radan/koordinaatiston rotaatio suhteessa orbitaaliin.
+-
+-Kokonaislukusuhteilla rata sulkeutuu yhden perusvaiheen jälkeen. **Radan sulkeutuminen ei takaa kuultua perustaajuutta**: symmetria voi tuottaa esimerkiksi vain kaksinkertaisen taajuuden, DC:n tai hiljaisuuden. Keskipisteen siirto on tämän vuoksi tärkeä *musiikillinen* parametri. Myöhemmässä versiossa voidaan lisätä ei-kokonaislukuiset suhdeluvut ja kvasiperiodiset radat, mutta tällöin yksiselitteinen soittokorkeus ei ole aina taattu.
+-
+-### 3.3 Orbitaalin rotaatio
+-
+-Kun halutaan pyörittää kenttää, evaluoidaan se rotaatiomatriisilla muunnetussa pisteessä:
+-
+-$$
+-\psi_{\mathrm{rot}}(\mathbf q)=\psi(R^{-1}\mathbf q).
+-$$
+-
+-Tämä säilyttää itse orbitaalin matemaattisen muodon. Hidas `SPIN`-modulaatio voi tuottaa jatkuvaa timbraalista muutosta. Kentän rotaatio ei saa vaikuttaa varsinaiseen audiovaiheeseen eikä vahingossa nollata oskillaattoria.
+-
+-### 3.4 Superpositio
+-
+-Versiossa 0.1 voidaan toteuttaa kahden **reaalisen, normalisoidun** tilan yhdistelmä samalla `n`-tasolla:
+-
+-$$
+-\Psi(\mathbf q)=w_A\psi_A(\mathbf q)+w_B\psi_B(\mathbf q),\qquad
+-w_A^2+w_B^2=1.
+-$$
+-
+-Esimerkiksi `w_A = cos(α)`, `w_B = sin(α)`, missä `α ∈ [0, π/2]`. Ortogonaalisille tiloille tämä säilyttää kentän kvanttimekaanisen normin. Yhdistelmä on itsekin sallittu kvanttitila. Jos tilat ovat eri `n`-tasoilta, oikea ajallinen kehitys sisältäisi niiden eri energioihin liittyvät kompleksiset suhteelliset vaihetekijät: siksi **eri `n`-tasojen morphing jätetään v0.1:n ulkopuolelle tai merkitään myöhemmin selvästi taiteelliseksi interpolaatioksi**.
+-
+-### 3.5 Taajuus ja ulostulo
+-
+-- Sisäinen taajuusohjaus `1 V/oct`; nimellistaajuus esimerkiksi C4 = 261,626 Hz, kun pitch-offset ja CV ovat nolla.
+-- `f = f_ref · 2^(pitch + V_oct)`; negatiivinen vaiheaskel voidaan tukea myöhemmin erillisenä suunnanvaihtona.
+-- Lähtö tavoitellaan VCV Rackin tyypilliselle audiosignaalin tasolle `±5 V`, hallitulla vahvistuksella.
+-- `LEVEL` toimii viimeisenä gain-säätönä. Per-orbitaali **kiinteä, etukäteen määritelty kalibrointikerroin** tasaa käyttöä, mutta ei muuta `ψ`:n laskentaa; ei huomaamatonta nopeatempoista AGC:tä.
+-- Oletuksena maltillinen DC-estosuodin (esim. noin 5 Hz), koska yksittäinen kentän läpi kulkeva rata voi tuottaa merkittävän keskiarvon. Käyttäjälle voidaan tarjota `DC COUPLED` -valinta myöhemmin.
+-- Nollaa lähestyvän signaalin voimakas automaattinen kompensointi kielletään: solmupinnalla kulkeminen saa tuottaa hiljaisuuden.
+-
+-## 4. Käyttöliittymä ja CV
+-
+-### 4.1 Etupaneelin pääsäätimet (MVP)
+-
+-| Säädin | Toiminta |
+-|---|---|
+-| `ORBITAL A` | Ensimmäisen tilan valinta (n/l/reaalinen orientaatio) |
+-| `ORBITAL B` | Toisen tilan valinta; aluksi vain sama `n` sallitaan superpositiossa |
+-| `MIX` | A/B-superposition kulma, normitettu sekoitus |
+-| `PITCH` | Taajuusoffset oktaaveina/puolisävelaskelina |
+-| `RADIUS` | Lukuradan kolmen akselin yhteinen skaala |
+-| `OFFSET` | Lukuradan keskipisteen etäisyys ytimestä; yksinkertainen v0.1-ohjaus (esim. X-akselilla) |
+-| `SHAPE` | Ratapresetit / akselisuhteet ja vaihe-erot, suljettu rata säilyy |
+-| `TILT` | Radan tai kentän kallistus (kiertokulma) |
+-| `SPIN` | Kentän hidas kierto; bipolaarinen nopeus |
+-| `LEVEL` | Lähtötaso |
+-
+-Yksinkertainen ensiversio ei tarvitse kaikkia mahdollisia 3D-akselikohtaisia säätimiä paneeliin. Tarkat `x/y/z`-offsetit, akseliamplitudit ja vaihe-erot voidaan aluksi tarjota kontekstivalikossa. Tärkeintä on päästä nopeasti kuultavaan lopputulokseen.
+-
+-### 4.2 Liitännät
+-
+-**Tuloliitännät:** `V/OCT`, `FM`, `RADIUS CV`, `OFFSET CV`, `MIX CV`, `TILT CV`, `SPIN CV`, `RESET/SYNC`.
+-
+-**Lähtöliitännät:** `AUDIO` (mono), mahdollisesti erillinen `X`, `Y`, `Z` CV-ulostulo myöhemmässä versiossa.
+-
+-`FM` on aluksi lineaarinen tai eksponentiaalinen malliltaan *erikseen dokumentoitava*, ettei CV:n vaikutus jää epäselväksi. Määrittele myös jänniteskaalat ja tulokohtaiset vaimennukset toteutusvaiheessa. Audiotaajuisia CV-muutoksia käsitellään näytekohtaisesti; jatkuvien käsisäätimien muutokset tasoitetaan napsahdusten välttämiseksi.
+-
+-### 4.3 Visualisointi
+-
+-Keskialueella on orbitaalin kolmiulotteinen, hitaasti liikkuva **todennäköisyyspilvi** sekä lukurata ja sen tämänhetkinen piste. Positiivinen/negatiivinen aaltofunktion vaihe kuvataan kahdella selvästi erottuvalla värillä; tiheys tai pistepilven opacity perustuu `|ψ|²`:een. Tämä grafiikka **ei** ole audiosignaalin laskentamenetelmä.
+-
+-UI laskee tai piirtää pilven omalla matalalla päivitysnopeudellaan, esimerkiksi 15–30 FPS. Audio-thread ei piirrä eikä odota UI:ta. Näytölle riittää aluksi kevyt 2D-projektio, mikäli oikea 3D on liian suuri työ v0.1:een.
+-
+-## 5. DSP-arkkitehtuuri
+-
+-```text
+-VCV Rack: parameter knobs + CV inputs
+-                │
+-                ▼
+-         ParameterMapper
+-       (scale + smoothing)
+-                │
+-                ▼
+-         PhaseAccumulator ◄── V/OCT + FM
+-                │
+-                ▼
+-         Trajectory3D
+-    (Lissajous + offset + rotation)
+-                │
+-                ▼
+-        OrbitalEvaluator
+-   (R_nl × real spherical harmonic)
+-         A            B
+-          ╲          ╱
+-           ▼        ▼
+-           QuantumMixer
+-                │
+-                ▼
+-        DCBlock → Gain → AUDIO
+-```
+-
+-**Ehdotettu koodijako:**
+-
+-- `QuantumNumbers.h` — `n`, `l`, `m`/reaaliorientaation tunniste ja validointi.
+-- `HydrogenOrbitals.h/.cpp` — normalisoitujen kenttien analyyttinen evaluointi ja yksikkötestit.
+-- `Trajectory3D.h/.cpp` — deterministiset, suljetut audiotaajuiset 3D-radat.
+-- `OrbitalEngine.h/.cpp` — vaihe, kentän arviointi, superpositio ja audiokäsittely; **ei VCV-riippuvuutta**.
+-- `OrbitalModule.cpp` — Rack-parametrit, portit, patch-persistenssi.
+-- `OrbitalWidget.cpp` — etupaneeli, näyttö ja grafiikka.
+-
+-### 5.1 Reaaliaikainen prosessointi
+-
+-```cpp
+-void OrbitalEngine::processSample(const Controls& c, float& out) noexcept {
+-    const double f = computeFrequency(c.pitch, c.fm);
+-    const double theta = twoPi * phase_;
+-    Vec3 p = trajectory_.evaluate(theta, c.path);
+-    p = rotateIntoFieldCoordinates(p, c.rotation);
+-
+-    const double a = orbitals_.evaluate(c.stateA, p);
+-    const double b = orbitals_.evaluate(c.stateB, p);
+-    const double sample = c.weightA * a + c.weightB * b;
+-
+-    out = outputStage_.process(static_cast<float>(sample), c.level);
+-    phase_ = wrap01(phase_ + f / sampleRate_);
+-}
+-```
+-
+-Tämä on **pseudokoodia**, ei suoraan käännettävä header-sopimus: esimerkiksi suotimien tila, parametrien tasoitus, poistettavat B-tilan laskut, reset-käsittely ja mahdollinen oversampling tarkentuvat toteutuksessa.
+-
+-### 5.2 Optimointi
+-
+-- Suunnittele v0.1 tukemaan `n = 1...4`, `l = 0...3`, `l < n`. `4f` voidaan aluksi jättää UI:ssa piiloon, jos se tarvitsee vielä testejä.
+-- Esilaske **vain matemaattiset kertoimet** (normalisoinnit, faktoriaalit, Laguerre-polynomien kertoimet), kun orbitaali vaihtuu. **Älä esilaske kenttää tai aaltomuotoa.**
+-- Käytä pienille `n/l`-arvoille eksplisiittisiä, testattuja karteesisia polynomimuotoja tai stabiileja rekursioita. Vältä `atan2`/`acos`-laskuja jokaisella näytteellä, jos sama voidaan laskea karteesisesti.
+-- Käsittele `r = 0` ilman jakamista nollalla; polynomimuotoinen arviointi helpottaa tätä.
+-- Vältä audiosäikeessä muistivarauksia, lukkoja, tiedostokäsittelyä ja käyttöliittymäoperaatioita.
+-- Jos B-tilan paino on nolla, jätä B:n arviointi tekemättä; vastaavasti A:lle.
+-- CV-signaali luetaan audiotaajuudella, mutta hitaita parametreja voidaan tarvittaessa päivittää harvemmin ja interpoloida turvallisesti.
+-- Ota CPU-profiilit ensin ilman oversamplingia. Lisää valinnainen 2×/4× oversampling asianmukaisella alipäästösuodatetulla alasnäytteistyksellä vasta, kun aliasointi on mitattu; pelkkä tiheämpi laskenta ei yksin riitä.
+-
+-### 5.3 Napsahdukset ja aliasointi
+-
+-Käsisäätimien muutokset tasoitetaan. Diskreetti orbitaalinvaihto tehdään esimerkiksi 5–20 ms:n ristiinhäivytyksellä. Suurilla taajuuksilla jyrkät spatiaalisen kentän muutoskohdat ja suuret geometriset suhdeluvut voivat synnyttää Nyquist-rajan ylittäviä harmonisia. Mittaa aliasointi käytännössä ja määritä rajat taajuudelle sekä oversampling-asetukselle.
+-
+-## 6. MVP / v0.1
+-
+-**Ensimmäinen soitettava julkaisu:**
+-
+-1. Mono-oskillaattori, `V/OCT`, `PITCH`, `AUDIO` ja lähtötason säätö.
+-2. Oikeat, normalisoidut `1s`, `2s`, `2p_x`, `2p_y`, `2p_z` sekä viisi `3d`-orbitaalia.
+-3. Näytekohtainen, suljettu 3D-lukurata; säädöt `RADIUS`, `OFFSET`, `SHAPE`, `TILT`.
+-4. Orbitaalien rotaatio `SPIN` ja kaksi saman `n`-tason tilaa sekoittava `MIX`.
+-5. Tärkeimpien parametrien CV, DC-estosuodin ja hallittu ulostulotaso.
+-6. Kevyt radan visualisointi; 3D-pilvi saa olla v0.1:n lopussa toteutettava lisä.
+-
+-**V0.1:n ulkopuolelle:** eri `n`-tasojen fysikaalinen aikaevoluutio, monimutkaiset epäharmoniset radat, polyfonia, ulkoinen wavetable-tuonti, jälkikäsittelyefektit ja VST3.
+-
+-**MVP:n oletuspresetiä varten:** käytä siirrettyä Lissajous-rataa, jonka säde vaihtelee ja joka ei pysy kokonaan valitun orbitaalin solmupinnalla. Tämä on tärkeää: esimerkiksi `1s` luettuna tarkalla keskipisteisellä ympyräradalla antaisi vakioarvon eikä soivaa ääntä.
+-
+-## 7. Testaus ja hyväksymiskriteerit
+-
+-### 7.1 Matemaattiset testit
+-
+-- `1s` ja `2p_z` vastaavat luvun 2.3 referenssifunktioita valituissa pisteissä.
+-- `p_x` vaihtaa etumerkkiä, kun `x` vaihtaa etumerkkiä; `p_z = 0`, kun `z = 0`.
+-- `d`-orbitaalien oikeat solmupinnat ja pariteetti vastaavat teoriaa.
+-- Reaalisten tilojen normalisointi ja ortogonaalisuus testataan erillisellä offline-integraatiolla tarkoituksenmukaisella numeerisella toleranssilla (integroinnin katkaisu huomioiden).
+-- `r = 0` ja suuret `r`-arvot antavat äärelliset luvut ilman `NaN`/`Inf`-arvoja.
+-- Saman `n`-tason ortogonaalisten tilojen superpositio säilyttää normin valitulla painotuksella.
+-
+-### 7.2 Audiotestit
+-
+-- `1 V/oct` tuplaa **lukuradan läpikäyntinopeuden**. Kuultu alin spektripiikki voi symmetrian vuoksi silti olla 2×/3× suhteessa tähän; käyttäjälle täytyy tehdä ero selväksi.
+-- Soiva ja toistuva ääni löytyy vähintään yhdestä oletusasetuksesta jokaiselle MVP:n orbitaliperheelle.
+-- Orbitaalinvaihto ja nuppien liikuttelu eivät tuota hallitsemattomia napsahduksia.
+-- Nullapolku / solmupintaa seuraava rata saa olla hiljainen ilman että vahvistus räjähtää.
+-- Audioprosessissa ei tapahdu muistivarauksia eikä käyttöliittymäriippuvia kutsuja.
+-- Äänentuotto toimii vähintään 44,1 / 48 / 96 kHz:n Rack-engine-taajuuksilla.
+-- Aliasointi ja CPU-kuorma mitataan sekä yhdessä että useassa rinnakkaisessa moduuli-instanssissa.
+-
+-## 8. Kehitysjärjestys
+-
+-**Vaihe A — matematiikka erilleen.** Toteuta `HydrogenOrbitals` ja testit. Varmista arvot, solmupinnat, normalisointi ja etumerkkikonventio. Ei vielä Rack-grafiikkaa.
+-
+-**Vaihe B — ensimmäinen ääni.** Toteuta `Trajectory3D` ja yksittäinen `2p_z`-oskillaattori; tulosta suoraan audiosignaali. Varmista, että radan offset, kulma ja säde todella muuttavat spektriä.
+-
+-**Vaihe C — soittokelpoinen moduuli.** Lisää muut tilat, patch-parametrit, `V/OCT`, CV, tasoitus ja lähtöaste. Profiloi CPU ja analysoi FFT:llä spektri sekä aliasointi.
+-
+-**Vaihe D — superpositio ja visualisointi.** Lisää samaan `n`-tasoon rajattu A/B-miksaus, kentän rotaatio sekä lukuradan ja orbitaalin grafiikka. Viimeistele paneeli Filth Assemblyn limenvihreällä visuaalisella kielellä.
+-
+-## 9. Avoimet tekniset valinnat
+-
+-- **Soittokorkeus:** käytetäänkö pitch-arvona lukuradan taajuutta (MVP:n päätös: kyllä) vai tarjotaanko myöhemmin spektrin perustaajuutta seuraava *pitch compensation* -tila? Jälkimmäinen ei aina ole mahdollinen.
+-- **Suuren taajuuden äänenlaatu:** mitkä oversampling-moodit ovat tarpeen todellisen spektrianalyysin perusteella?
+-- **Grafiikka:** toteutetaanko pistepilvi kokonaan erillisessä käyttöliittymälogiikassa vai tarvitaanko myöhemmin GPU-kiihdytystä?
+-- **Orbitaalivalikoima:** näytetäänkö kaikki `n ≤ 4` -tilat vai kuratoitu lista? Matematiikkaydintä ei tarvitse rajata UI:n valikoimaan.
+-- **VST-laajennus:** säilytetäänkö moottorin API mahdollisimman ympäristöriippumattomana? **Kyllä.**
+-
+-## 10. Lähteet ja tekniset referenssit
+-
+-1. [Lecture Notes in Physical Chemistry II — The hydrogen atom](https://www.physchem.no/physchem_book/chapters-11-hydrogen.html). Säteittäisen osan normalisointi, orbitalit sekä reaaliset palloharmoniset.
+-2. [TU Delft — Introduction to Quantum Mechanics, Equations and constants](https://interactivetextbooks.tudelft.nl/introduction-to-quantum-mechanics/content/equationsandconstants.html). Säteittäiset funktiot ja Laguerre-polynomit.
+-3. [VCV Rack — Plugin API Guide](https://vcvrack.com/manual/PluginGuide). Parametrit, audioprosessointi, sample rate, CV, polyfonia ja SIMD.
+-4. [VCV Rack — Plugin Development Tutorial](https://vcvrack.com/manual/PluginDevelopmentTutorial). Rack SDK, C++-moduulin perusrakenne ja audion jännitetasot.
+-
+----
+-
+-**Suunnitteluperiaate:** *Real atomic mathematics. Invented trajectories. Unpredictable sound.*  
+-**Filth Assembly — Sound decisions.**
+diff --git c/README.md w/README.md
+index 4ae8776..dff2aa4 100644
+--- c/README.md
++++ w/README.md
+@@ -1,18 +1,20 @@
+-# Filth Assembly — ORBITAL 2.1.1
++# Filth Assembly — Orbitals 2.1.2
+ 
+ A monophonic VCV Rack 2 oscillator sampling **signed, normalized analytical hydrogen wavefunctions** along a real-time three-dimensional path. Atomic units: Bohr radius a₀ = 1. Audio synthesis uses neither wavetables nor sampled spatial fields.
+ 
+ The path is a synthesis technique, not an electron trajectory. Pitch controls path traversal frequency; orbital symmetry may make the audible fundamental a multiple of that frequency. Cross-energy-level superpositions are static snapshots, without physical energy-dependent phase evolution.
+ 
+-![ORBITAL panel](docs/ORBITAL.png)
++![Orbitals dark panel](docs/Orbitals.png)
++
++[Light panel preview](docs/Orbitals-light.png)
+ 
+ ## Play
+ 
+-Find **Filth Assembly / ORBITAL** in the module browser. Connect AUDIO through a VCA or mixer to your audio interface. Start at a low monitoring level. Defaults select 2p_z, radius 6 a₀, offset 1 a₀ and zero spin, giving a changing, audible signal. Connect a pitch source to V/OCT. Adjust RADIUS, OFFSET and SHAPE to explore the field. Selecting 1s can produce a stronger output than higher orbitals.
++Find **Filth Assembly / Orbitals** in the module browser. Connect AUDIO through a VCA or mixer to your audio interface. Start at a low monitoring level. Defaults select 2p_z, radius 6 a₀, offset 1 a₀ and zero spin, giving a changing, audible signal. Connect a pitch source to V/OCT. Adjust RADIUS, OFFSET and SHAPE to explore the field. Selecting 1s can produce a stronger output than higher orbitals.
+ 
+ | Control | Range / behavior |
+ |---|---|
+-| ORBITAL A, B | Snapped 14-position selectors; right-click for state names |
++| Orbital A, B | Snapped 14-position selectors; right-click for state names |
+ | MIX | 0 = A, 1 = B; cos(π MIX/2), sin(π MIX/2) weights |
+ | PITCH | ±5 octaves around C4 = 261.625565 Hz |
+ | RADIUS | 0…24 a₀ |
+@@ -27,15 +29,13 @@ States in order: 1s, 2s, 2p_x, 2p_y, 2p_z, 3s, 3p_x, 3p_y, 3p_z, 3d_xy, 3d_xz, 3
+ | Input | Mapping |
+ |---|---|
+ | V/OCT | 1 V/octave, added to pitch |
+-| FM | Exponential FM, 1 V/octave, added to pitch |
+ | RADIUS CV | +2.4 a₀/V, total clamped to 0…24 |
+ | OFFSET CV | +2.4 a₀/V, total clamped to ±24 |
+ | MIX CV | +0.1/V, total clamped to 0…1 |
+ | TILT CV | +36°/V, total clamped to ±180° |
+ | SPIN CV | +0.05 revolutions/s/V, total clamped to ±0.5 |
+-| RESET/SYNC | Rising edge at 1 V resets audio and spin phase; rearms below 0.1 V |
+ 
+-All CVs are read each sample, using channel 1 only. Modulation CVs are limited to ±10 V before mapping (sync ±100 V). Nonfinite inputs become zero. Knob controls and the orbital coefficient vector use a 5 ms one-pole transition; MIX CV also goes through this transition. Geometry CV, V/OCT and FM are unsmoothed. Fast external changes and hard sync can therefore click. Orbital changes keep oscillator phase continuous and fade through the coefficient vector, including during repeated changes.
++All CVs are read each sample, using channel 1 only. Modulation CVs are limited to ±10 V before mapping. Nonfinite inputs become zero. Knob controls and the orbital coefficient vector use a 5 ms one-pole transition; MIX CV also goes through this transition. Geometry CV and V/OCT are unsmoothed. Fast external changes can therefore click. Orbital changes keep oscillator phase continuous and fade through the coefficient vector, including during repeated changes.
+ 
+ AUDIO is DC-blocked at 5 Hz, uses one fixed gain of 40 V per atomic wavefunction unit before LEVEL, and is limited to ±5 V for safety. There is no AGC or per-state reweighting of the quantum superposition. Output level varies with the state and trajectory. Silent or almost constant paths are mathematically valid.
+ 
+@@ -43,11 +43,11 @@ X/Y/Z are the **world path coordinates before field spin**, without audio filter
+ 
+ ## Dot-matrix orbital monitor
+ 
+-Version 2.1.1 adds a dark phosphor-style **128 × 40 grainy dot matrix**. Green and muted amber dots show the positive and negative parts of the superposed orbital field; brightness comes from |Ψ|² with display-only exposure/gamma. A dotted path overlays the field, with a brighter recent trail and a glowing head. The fixed oblique projection shows field rotation from SPIN and the path changes from RADIUS, OFFSET, SHAPE and TILT. A/B and MIX change the actual combined field, including interference and the identical-state special case.
++Version 2.1.2 adds a dark phosphor-style **128 × 128 grainy dot matrix**. Green and muted amber dots show the positive and negative parts of the superposed orbital field; brightness comes from |Ψ|² with display-only exposure/gamma. A dotted path overlays the field, with a brighter recent trail and a glowing head. The oblique projection shows field rotation from SPIN and the path changes from RADIUS, OFFSET, SHAPE and TILT. A/B and MIX change the actual combined field, including interference and the identical-state special case.
+ 
+ The display receives the engine's effective, smoothed coefficients, CV-adjusted path, audio phase, spin phase and frequency at 30 snapshots/s. It does not read live audio-thread fields directly. A bounded lock-free single-producer/single-consumer queue drops snapshots when the UI stops. All field sampling and projection happen on the UI thread, at most 30 updates/s, using fixed arrays. The 3,072 spatial samples are deterministic; analytical field values are rebuilt only when the coefficients change enough. These UI samples never participate in audio synthesis.
+ 
+-A 180 ms phosphor decay gives the head a short persistence trail. PITCH affects the real head phase and up to 2 ms of its recent path (capped at a quarter cycle). At audio frequencies the head is a **stroboscopic view**: apparent speed/direction can alias or stand still at display-rate multiples. This is not a slow-motion electron simulation. The cloud is a qualitative signed-density projection, with adaptive framing and visual exposure rather than calibrated probability brightness. Rapid CV between snapshots is not captured. Browser previews show a deterministic default field without an audio module.
++A 180 ms phosphor decay gives the head a short persistence trail. PITCH affects the real head phase and up to 2 ms of its recent path (capped at a quarter cycle). At audio frequencies the head is a **stroboscopic view**: apparent speed/direction can alias or stand still at display-rate multiples. This is not a slow-motion electron simulation. The cloud is a qualitative signed-density projection, with adaptive framing around the main lobes and full trajectory, and visual exposure rather than calibrated probability brightness. Rapid CV between snapshots is not captured. Browser previews show a deterministic default field without an audio module.
+ 
+ ## Build and install
+ 
+@@ -63,9 +63,22 @@ make spectrum                 # optional; Python 3 + NumPy
+ make install                  # builds package and installs for the current user
+ ```
+ 
+-Restart Rack after installation. Linux default plugin directory is `~/.local/share/Rack2/plugins-lin-x64/`. Override `RACK_USER_DIR` when using a custom Rack user folder. The distributable package is `dist/FilthAssemblyOrbital-2.1.1-lin-x64.vcvplugin`. Other platforms require their own SDK build and are not validated here.
++Restart Rack after installation. Linux default plugin directory is `~/.local/share/Rack2/plugins-lin-x64/`. Override `RACK_USER_DIR` when using a custom Rack user folder. The distributable package is `dist/FilthAssembly-2.1.2-lin-x64.vcvplugin`. Other platforms require their own SDK build and are not validated here.
+ 
+-The panel is 28 HP and uses Rack stock knobs/ports. Its center contains a live grainy dot-matrix orbital monitor. Text is converted to SVG paths for NanoSVG; edit `docs/panel-source.svg`, then export with Inkscape's `--export-text-to-path --export-plain-svg --export-type=svg --export-filename=res/ORBITAL.svg` options.
++The panel is 18 HP and follows Rack's light/dark panel preference, including live
++changes. Custom jacks use `res/jack.svg`; knobs have a fixed `knob_static.svg`
++base and a rotating `knob_top.svg`, with a smaller MIX knob. The 59 × 59 mm
++screen frames the visible field and path together, with a 128 × 128 matrix.
++Editable panel sources are in `docs/panel-sources/`; render-ready SVGs in `res/`
++have text converted to paths for Rack's NanoSVG renderer.
++
++The plugin's visible name and brand are **Filth Assembly**. Its technical slug
++is `FilthAssembly` (Rack slugs cannot contain spaces), and the module name and
++slug are `Orbitals`: **FilthAssembly/Orbitals**. This replaces the prerelease
++`FilthAssemblyOrbital/ORBITAL` identifiers. Old patches require migration and
++FM/Sync cables must be removed; the remaining CV input IDs have changed.
++Back up patches before migrating. The underlying synthesis engine is unchanged;
++FM and Sync are no longer exposed by the Rack module.
+ 
+ ## Implementation and validation
+ 
+@@ -73,10 +86,10 @@ The panel is 28 HP and uses Rack stock knobs/ports. Its center contains a live g
+ - `src/dsp/Trajectory3D.hpp`: closed path, tilt and inverse field rotation.
+ - `src/dsp/OrbitalEngine.hpp`: independent, allocation-free DSP; 4× sampling and a 95-tap Blackman-windowed sinc decimator.
+ - `src/OrbitalModule.*`: Rack parameters, CV and sample-rate events.
+-- `src/ui/OrbitalWidget.cpp`: stock Rack UI.
++- `src/ui/OrbitalWidget.cpp`: custom SVG controls and themed panels.
+ - `test/`: analytical checks, independent volume integration, engine tests, binary loading and spectral diagnostics.
+ 
+-See [equations](docs/MATHEMATICS.md) and [validation results and limitations](docs/VALIDATION.md). Original design and placement reference are retained in this repository; the 2.1.1 implementation follows the newer task specification where it differs.
++See [equations](docs/MATHEMATICS.md) and [validation results and limitations](docs/VALIDATION.md). Original design and placement reference are retained in this repository; the 2.1.2 implementation follows the newer task specification where it differs.
+ 
+ License: proprietary; all rights reserved. No GitHub Release is created by the build.
+ 
+diff --git c/docs/MATHEMATICS.md w/docs/MATHEMATICS.md
+index a99bc87..ce27fad 100644
+--- c/docs/MATHEMATICS.md
++++ w/docs/MATHEMATICS.md
+@@ -1,64 +1,73 @@
+ # Analytical foundation
+ 
+-Atomic units Z = a₀ = 1. Let r = sqrt(x²+y²+z²), ρ = 2r/n, k = n−l−1. Every evaluator uses
++Atomic units $Z = a₀ = 1. Let r = sqrt(x²+y²+z²), ρ = 2r/n, k = n−l−1$ . Every evaluator uses
+ 
+-ψ = sqrt[(2/n)³ k! / (2n(n+l)!)] exp(−r/n) (2/n)^l L_k^(2l+1)(ρ) S_l(x,y,z).
++$$ψ = sqrt[(2/n)³ k! / (2n(n+l)!)] exp(−r/n) (2/n)^l L_k^(2l+1)(ρ) S_l(x,y,z).$$
+ 
+-S_l = r^l Y_l(real). Combining powers of r with the spherical harmonics removes all divisions by r, and avoids spherical angles and the singularity at the origin. The radial normalization and angular normalization are both retained. The scalar evaluator uses double precision and returns signed ψ, never |ψ|².
++
++$S_l = r^l Y_l(real)$ . Combining powers of $r$ with the spherical harmonics removes all divisions by $r$ , and avoids spherical angles and the singularity at the origin. The radial normalization and angular normalization are both retained. The scalar evaluator uses double precision and returns signed $ψ$ , never $|ψ|²$ .
+ 
+ The exact Laguerre polynomials required here are:
+ 
+-- L₀^a(ρ) = 1
+-- L₁^a(ρ) = a+1−ρ
+-- L₂^a(ρ) = [ρ²−2(a+2)ρ+(a+2)(a+1)]/2
++- $L₀^a(ρ) = 1$ 
++- $L₁^a(ρ) = a+1−ρ$ 
++- $L₂^a(ρ) = [ρ²−2(a+2)ρ+(a+2)(a+1)]/2$ 
+ 
+ The real solid harmonics, with positive Cartesian coefficients as the global phase convention, are:
+ 
+-| Harmonic | S_l |
+-|---|---|
+-| s | 1/√(4π) |
+-| p_x, p_y, p_z | √(3/(4π)) × x, y, z |
+-| d_xy, d_xz, d_yz | √(15/(4π)) × xy, xz, yz |
+-| d_x²−y² | √(15/(16π)) (x²−y²) |
+-| d_z² | √(5/(16π)) (2z²−x²−y²) |
++| Harmonic               | $S_l$                     |
++| ---------------------- | ------------------------- |
++| $s$                    | $1/√(4π)$                 |
++| $p_x$, $p_y$, $p_z$    | $√(3/(4π)) × x, y, z$     |
++| $d_xy$, $d_xz$, $d_yz$ | $√(15/(4π)) × xy, xz, yz$ |
++| $d_x²−y²$              | $√(15/(16π)) (x²−y²)$     |
++| $d_z²$                 | $√(5/(16π)) (2z²−x²−y²)$  |
+ 
+ IDs 0, 1, 5 use l = 0; IDs 2–4 and 6–8 use l = 1; IDs 9–13 use l = 2. The n values are 1, 2 and 3 respectively. No orbital values or audio waveforms are cached.
+ 
+ For independent reference checks, the Cartesian formulas reduce to:
+ 
+-- 1s: exp(−r)/√π
+-- 2s: (2−r) exp(−r/2)/(4√(2π))
+-- 2p_i: i exp(−r/2)/(4√(2π))
+-- 3s: (27−18r+2r²) exp(−r/3)/(81√(3π))
+-- 3p_i: √2 i(6−r) exp(−r/3)/(81√π)
+-- Let D = 2 exp(−r/3)/(81√(2π)). Then the five d states are Dxy, Dxz, Dyz, D(x²−y²)/2 and D(2z²−x²−y²)/(2√3).
++- $1s: exp(−r)/√π$
++- $2s: (2−r) exp(−r/2)/(4√(2π))$
++- $2p_i: i exp(−r/2)/(4√(2π))$
++- $3s: (27−18r+2r²) exp(−r/3)/(81√(3π))$
++- $3p_i: √2 i(6−r) exp(−r/3)/(81√π)$
++- Let $D = 2 exp(−r/3)/(81√(2π))$. Then the five d states are $Dxy, Dxz, Dyz, D(x²−y²)/2$ and $D(2z²−x²−y²)/(2√3).$
+ 
+ ## Superposition and transitions
+ 
+-For different states w_A = cos(πm/2), w_B = sin(πm/2). Orthogonality ensures unit spatial norm. If A = B, the target coefficient is exactly 1, equivalent to dividing the uncorrected sum by cos(πm/2)+sin(πm/2). A single common audio gain follows summation so relative coefficients remain correct.
++For different states $w_A = cos(πm/2)$, $w_B = sin(πm/2)$. Orthogonality ensures unit spatial norm. If $A = B$, the target coefficient is exactly 1, equivalent to dividing the uncorrected sum by $cos(πm/2)+sin(πm/2)$. A single common audio gain follows summation so relative coefficients remain correct.
+ 
+ Orbital selection/MIX changes drive a nonnegative 14-element coefficient vector through a 5 ms one-pole transition. The transient vector is not renormalized: its norm may dip during a selection fade, which avoids amplifying weak transition signals. Once settled, the requested normalized superposition is recovered. This is an audio transition, not a physical evolution model.
+ 
+ ## Trajectory
+ 
+-With s = SHAPE, θ = 2π phase and R = RADIUS:
++With $s$ = SHAPE, $θ = 2π$ phase and $R$ = RADIUS:
+ 
+-x = R sin θ
++$$x = R sin θ$$
+ 
+-y = R(0.35+0.65s) sin(2θ+πs)
++$$y = R(0.35+0.65s) sin(2θ+πs)$$
+ 
+-z = R(1−0.7s) sin(3θ+πs/2).
++$$z = R(1−0.7s) sin(3θ+πs/2).$$
+ 
+-Rotate the y/z pair around X by π TILT; then add OFFSET to x. This preserves one-cycle closure at all fixed shape settings. Double/triple-angle identities reuse sin θ and cos θ. Field sampling uses the inverse Z rotation R_z(−2π spinPhase); spinPhase integrates the SPIN rate independently of oscillator phase. With nonzero spin or time-varying parameters, the resulting audio need not repeat after one path cycle.
++Rotate the $y/z$ pair around $X$ by $π$ TILT; then add OFFSET to $x$. This preserves one-cycle closure at all fixed shape settings. Double/triple-angle identities reuse $sin θ$ and $cos θ$. Field sampling uses the inverse Z rotation $R_z(−2π spinPhase)$; spinPhase integrates the SPIN rate independently of oscillator phase. With nonzero spin or time-varying parameters, the resulting audio need not repeat after one path cycle.
+ 
+ ## Audio
+ 
+-f = min(20000, 0.45 f_s, 261.6255653 × 2^(pitch + V/OCT + FM)), with bounded inputs and total exponent limited to ±16. Negative FM lowers frequency; through-zero linear FM is not implemented.
++$$f = min(20000, 0.45 f_s, 261.6255653 × 2^(pitch + V/OCT + FM)) $$
+ 
+-Four analytical samples per host sample are fed to a 95-tap, unity-DC-gain Blackman-windowed sinc FIR, cutoff 0.105 cycles/internal sample (= 0.42 cycles/host sample). The decimator uses fixed arrays; its coefficients are generated once at construction. Its output enters y[n] = x[n]−x[n−1]+exp(−2π5/f_s)y[n−1], then LEVEL and a ±5 V safety clamp. Sample-rate changes update the DC pole and time smoothing without resetting phase. Hard sync deliberately resets phase, preserving filter history.
++with bounded inputs and total exponent limited to ±16. Negative FM lowers frequency; through-zero linear FM is not implemented.
++
++Four analytical samples per host sample are fed to a 95-tap, unity-DC-gain Blackman-windowed sinc FIR, cutoff 0.105 cycles/internal sample (= 0.42 cycles/host sample). The decimator uses fixed arrays; its coefficients are generated once at construction. Its output enters $y[n] = x[n]−x[n−1]+exp(−2π5/f_s)y[n−1]$, then LEVEL and a ±5 V safety clamp. Sample-rate changes update the DC pole and time smoothing without resetting phase. Hard sync deliberately resets phase, preserving filter history.
+ 
+ ## References
+ 
+ - [Hydrogen radial solutions and real spherical harmonics](https://www.physchem.no/physchem_book/chapters-11-hydrogen.html)
+ - [Rack plugin API](https://vcvrack.com/manual/PluginGuide)
+ - [Rack installation and command-line options](https://vcvrack.com/manual/Installing)
++
++## Rack interface in 2.1.2
++
++The Orbitals module exposes six CV inputs; FM and Sync are not connected to the
++engine and remain zero. The engine equations and optional FM/sync behavior above
++are retained unchanged for mathematical and audio regression tests.
+diff --git c/docs/VALIDATION.md w/docs/VALIDATION.md
+index fd0f4c9..cb7096b 100644
+--- c/docs/VALIDATION.md
++++ w/docs/VALIDATION.md
+@@ -1,3 +1,32 @@
++# Orbitals 2.1.2 validation
++
++- SDK 2.6.6 / Linux x64: `make`, `make test`, `make test-rack`,
++  `make test-visualization`, `make test-audio-regression`, and `make dist` pass.
++- Plugin/module identifiers: `FilthAssembly/Orbitals`. Ten parameters, six CV
++  inputs, four outputs. FM and Sync are removed from the Rack interface; the
++  engine sources remain unchanged.
++- Analytical suite: 273,466 checks. Audio regression: 150,000 AUDIO/XYZ
++  comparisons against v2.1.0, maximum error 4.40e-14 V (tolerance 1e-10 V).
++- Visualization: 128 x 128 matrix, allocation-free updates, concurrent snapshot
++  transport, and complete trajectory framing at radii 0/6/24 and offsets
++  -24/0/24. Updates remain separate from audio synthesis.
++- Rack native module screenshot mode successfully renders the widget, but always
++  forces light panels. A separate OpenGL harness loaded the built plugin and
++  rendered the same widget through light/dark/light, verifying its selected SVG
++  after each change. Both rendered themes were visually inspected: controls,
++  label paths, custom jacks, screen placement and matrix. Images are
++  `Orbitals.png` (dark) and `Orbitals-light.png` (light).
++- Packaged SVGs have path outlines for text. Editable supplied source artwork is
++  preserved in `panel-sources/`. The light panel's output group was moved up
++  0.4715 mm in the runtime asset to match the dark panel's common jack centers.
++- Tests used isolated Rack profiles; the installed Contour plugin was untouched.
++  Both standalone projects now use the technical slug `FilthAssembly`, so their
++  packages cannot coexist in one Rack plugin directory without combining modules
++  into one plugin or choosing distinct technical slugs.
++
++The following are historical validation notes for earlier Orbitals versions;
++old identifiers, controls and screenshots describe those versions only.
++
+ # Validation — 2.1.0
+ 
+ Local environment: Linux x86-64, GCC, Rack SDK and Rack Free 2.6.6, 2026-10-31. These results describe this machine, not guarantees for every host.
+diff --git c/plugin.json w/plugin.json
+index 4864d3a..5ff1c91 100644
+--- c/plugin.json
++++ w/plugin.json
+@@ -1,5 +1,18 @@
+ {
+-  "slug": "FilthAssemblyOrbital", "name": "Filth Assembly ORBITAL", "version": "2.1.1",
+-  "license": "proprietary", "brand": "Filth Assembly", "author": "Filth Assembly",
+-  "modules": [{"slug": "ORBITAL", "name": "ORBITAL", "description": "Analytical hydrogen orbital oscillator", "tags": ["Oscillator"]}]
++  "slug": "FilthAssembly",
++  "name": "Filth Assembly",
++  "version": "2.1.2",
++  "license": "proprietary",
++  "brand": "Filth Assembly",
++  "author": "Filth Assembly",
++  "modules": [
++    {
++      "slug": "Orbitals",
++      "name": "Orbitals",
++      "description": "Analytical hydrogen orbital oscillator",
++      "tags": [
++        "Oscillator"
++      ]
++    }
++  ]
+ }
+diff --git c/src/OrbitalModule.cpp w/src/OrbitalModule.cpp
+index 461897f..94dfc5b 100644
+--- c/src/OrbitalModule.cpp
++++ w/src/OrbitalModule.cpp
+@@ -14,9 +14,8 @@ Orbital::Orbital() {
+     configParam(TILT, -1, 1, .2, "Tilt", " degrees", 0, 180);
+     configParam(SPIN, -1, 1, 0, "Spin", " Hz", 0, .5);
+     configParam(LEVEL, 0, 1, .7, "Level", "%", 0, 100);
+-    const char *ins[] = {"V/oct (1 V/oct)",   "Exponential FM (1 V/oct)",    "Radius (2.4 a0/V)",
+-                         "Offset (2.4 a0/V)", "Mix (10 V full range)",       "Tilt (36 degrees/V)",
+-                         "Spin (0.05 Hz/V)",  "Reset/sync (1 V rising edge)"};
++    const char *ins[] = {"V/oct (1 V/oct)", "Radius (2.4 a0/V)", "Offset (2.4 a0/V)",
++                         "Mix (10 V full range)", "Tilt (36 degrees/V)", "Spin (0.05 Hz/V)"};
+     for (int i = 0; i < NUM_INPUTS; i++)
+         configInput(i, ins[i]);
+     configOutput(AUDIO, "Audio");
+@@ -37,13 +36,11 @@ void Orbital::process(const ProcessArgs &args) {
+     c.spin = params[SPIN].getValue();
+     c.level = params[LEVEL].getValue();
+     c.voct = inputs[VOCT].getVoltage();
+-    c.fm = inputs[FM].getVoltage();
+     c.radiusCV = inputs[RADIUS_CV].getVoltage();
+     c.offsetCV = inputs[OFFSET_CV].getVoltage();
+     c.mixCV = inputs[MIX_CV].getVoltage();
+     c.tiltCV = inputs[TILT_CV].getVoltage();
+     c.spinCV = inputs[SPIN_CV].getVoltage();
+-    c.sync = inputs[SYNC].getVoltage();
+     auto r = engine.process(c);
+     outputs[AUDIO].setVoltage(r.audio);
+     outputs[X].setVoltage(r.xyz.x);
+diff --git c/src/OrbitalModule.hpp w/src/OrbitalModule.hpp
+index 5dc07a6..d3f33af 100644
+--- c/src/OrbitalModule.hpp
++++ w/src/OrbitalModule.hpp
+@@ -3,7 +3,7 @@
+ #include "plugin.hpp"
+ struct Orbital : Module {
+     enum ParamIds { A, B, MIX, PITCH, RADIUS, OFFSET, SHAPE, TILT, SPIN, LEVEL, NUM_PARAMS };
+-    enum InputIds { VOCT, FM, RADIUS_CV, OFFSET_CV, MIX_CV, TILT_CV, SPIN_CV, SYNC, NUM_INPUTS };
++    enum InputIds { VOCT, RADIUS_CV, OFFSET_CV, MIX_CV, TILT_CV, SPIN_CV, NUM_INPUTS };
+     enum OutputIds { AUDIO, X, Y, Z, NUM_OUTPUTS };
+     orbital::Engine engine;
+     orbital::VisualizationQueue visualization;
+diff --git c/src/ui/OrbitalDisplay.hpp w/src/ui/OrbitalDisplay.hpp
+index b696ca4..1f2956f 100644
+--- c/src/ui/OrbitalDisplay.hpp
++++ w/src/ui/OrbitalDisplay.hpp
+@@ -10,8 +10,8 @@ struct OrbitalDisplay : widget::Widget {
+     explicit OrbitalDisplay(Orbital *m) : module(m) {
+         state.coefficients = orbital::weights(4, 9, 0.);
+         state.phase = .17;
+-        box.pos = mm2px(Vec(25, 36));
+-        box.size = mm2px(Vec(92, 30));
++        box.pos = mm2px(Vec(4.33987f, 10.94057f));
++        box.size = mm2px(Vec(59, 59));
+     }
+     void step() override {
+         Widget::step();
+@@ -53,8 +53,8 @@ struct OrbitalDisplay : widget::Widget {
+                         int brightness = std::min(5, int(values[i] * 5 + .5f));
+                         if (brightness != level)
+                             continue;
+-                        nvgRect(args.vg, (i % orbital::DisplayModel::width) * dx + .3f,
+-                                (i / orbital::DisplayModel::width) * dy + .3f, dx * .73f,
++                        nvgRect(args.vg, (i % orbital::DisplayModel::width) * dx + dx * .135f,
++                                (i / orbital::DisplayModel::width) * dy + dy * .135f, dx * .73f,
+                                 dy * .73f);
+                     }
+                     NVGcolor color = channel == 1
+diff --git c/src/ui/OrbitalDisplayModel.hpp w/src/ui/OrbitalDisplayModel.hpp
+index 317b5af..d994acf 100644
+--- c/src/ui/OrbitalDisplayModel.hpp
++++ w/src/ui/OrbitalDisplayModel.hpp
+@@ -16,6 +16,7 @@ class DisplayModel {
+     std::array<double, count> cachedWeights{};
+     double fieldExtent = 0.;
+     double viewExtent = 12.;
++    double viewCenterX = 0., viewCenterY = 0.;
+     bool cached = false;
+     std::uint32_t rng = 0x4f524249;
+     float random() noexcept {
+@@ -66,7 +67,7 @@ class DisplayModel {
+     }
+ 
+   public:
+-    static constexpr int width = 128, height = 40, cells = width * height;
++    static constexpr int width = 128, height = 128, cells = width * height;
+     std::array<float, cells> positive{}, negative{}, trail{};
+     int head = -1;
+     DisplayModel() {
+@@ -79,22 +80,41 @@ class DisplayModel {
+     // elevated axis. Equal coordinate scaling preserves geometric proportions.
+     int project(Vec3 p) const noexcept {
+         const double scale = (height - 6) / (2. * viewExtent);
+-        int x = std::lround(width * .5 + scale * (.8 * p.x - .6 * p.y));
+-        int y = std::lround(height * .5 + scale * (.3 * p.x + .4 * p.y - .8660254 * p.z));
++        int x = std::lround(width * .5 + scale * (.8 * p.x - .6 * p.y - viewCenterX));
++        int y = std::lround(height * .5 + scale * (.3 * p.x + .4 * p.y - .8660254 * p.z - viewCenterY));
+         if (x < 1 || x >= width - 1 || y < 1 || y >= height - 1)
+             return -1;
+         return y * width + x;
+     }
+     void update(const VisualizationState &s, double dt) noexcept {
+         prepareField(s);
+-        // Shared frame for field, path and head; only zoom out when geometry exceeds the field.
+-        viewExtent = std::max(fieldExtent, std::abs(s.path.offset) + 1.5 * s.path.radius);
++
+         positive.fill(0);
+         negative.fill(0);
+         const float decay = std::exp(-bounded(dt, 0, 1) / .18);
+         for (auto &v : trail)
+             v *= decay;
+         const double cs = std::cos(2 * pi * s.spin), ss = std::sin(2 * pi * s.spin);
++        // Fit the main field lobes and the full path to the screen with an 8% margin.
++        // Very faint density tails may fall outside the camera, rather than shrinking the lobes.
++        // This camera is UI-only; field and trajectory share one undistorted projection.
++        PreparedPath path(s.path);
++        double minX = 1e30, maxX = -1e30, minY = 1e30, maxY = -1e30;
++        auto include = [&](Vec3 p) {
++            const double x = .8 * p.x - .6 * p.y;
++            const double y = .3 * p.x + .4 * p.y - .8660254 * p.z;
++            minX = std::min(minX, x); maxX = std::max(maxX, x);
++            minY = std::min(minY, y); maxY = std::max(maxY, y);
++        };
++        for (const auto &point : cloud)
++            if (point.brightness >= .15)
++                include({cs * point.p.x - ss * point.p.y,
++                         ss * point.p.x + cs * point.p.y, point.p.z});
++        for (int i = 0; i < 192; ++i)
++            include(path.evaluate(i / 192.));
++        viewCenterX = (minX + maxX) * .5;
++        viewCenterY = (minY + maxY) * .5;
++        viewExtent = std::max(.5, std::max(maxX - minX, maxY - minY) * .54);
+         for (int i = 0; i < samples; ++i) {
+             const auto &point = cloud[i];
+             if (point.brightness < .018)
+@@ -108,7 +128,6 @@ class DisplayModel {
+             const float grain = .72f + .28f * ((i * 37 % 101) / 100.f);
+             v = std::min(1.f, v + .26f * point.brightness * grain);
+         }
+-        PreparedPath path(s.path);
+         for (int i = 0; i < 192; ++i) {
+             int cell = project(path.evaluate(i / 192.));
+             if (cell >= 0)
+diff --git c/src/ui/OrbitalWidget.cpp w/src/ui/OrbitalWidget.cpp
+index c6b7809..a819152 100644
+--- c/src/ui/OrbitalWidget.cpp
++++ w/src/ui/OrbitalWidget.cpp
+@@ -1,22 +1,75 @@
+ #include "OrbitalDisplay.hpp"
++
++// The base stays fixed; only the top rotates about the supplied SVG's circular center.
++struct OrbitalsKnob : Knob {
++  std::shared_ptr<Svg> base, top;
++  OrbitalsKnob() {
++    minAngle = -0.75f * M_PI;
++    maxAngle = 0.75f * M_PI;
++    box.size = mm2px(Vec(14.382292f, 14.382292f));
++    base = Svg::load(asset::plugin(pluginInstance, "res/knob_static.svg"));
++    top = Svg::load(asset::plugin(pluginInstance, "res/knob_top.svg"));
++  }
++  void draw(const DrawArgs &args) override {
++    auto *quantity = getParamQuantity();
++    float value = quantity ? quantity->getScaledValue() : 0.5f;
++    float angle = minAngle + value * (maxAngle - minAngle);
++    float scale = box.size.x / mm2px(14.382292f);
++    nvgSave(args.vg);
++    nvgTranslate(args.vg, box.size.x / 2, box.size.y / 2);
++    nvgScale(args.vg, scale, scale);
++    nvgSave(args.vg);
++    nvgTranslate(args.vg, -mm2px(7.191145f), -mm2px(7.191148f));
++    window::svgDraw(args.vg, base->handle);
++    nvgRestore(args.vg);
++    nvgRotate(args.vg, angle);
++    nvgTranslate(args.vg, -mm2px(4.768337f), -mm2px(5.066264f));
++    window::svgDraw(args.vg, top->handle);
++    nvgRestore(args.vg);
++  }
++};
++struct MixKnob : OrbitalsKnob {
++  MixKnob() { box.size = mm2px(Vec(10.4f, 10.4f)); }
++};
++struct OrbitalsPort : SvgPort {
++  OrbitalsPort() {
++    setSvg(Svg::load(asset::plugin(pluginInstance, "res/jack.svg")));
++    shadow->opacity = 0;
++  }
++};
+ struct OrbitalWidget : ModuleWidget {
+     OrbitalWidget(Orbital *module) {
+         setModule(module);
+-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ORBITAL.svg")));
++        setPanel(createPanel(
++            asset::plugin(pluginInstance, "res/orbitals_panel_light.svg"),
++            asset::plugin(pluginInstance, "res/orbitals_panel_dark.svg")));
+         addChild(new OrbitalDisplay(module));
+-        const float xx[] = {19, 49, 93, 123};
+-        for (int i = 0; i < 4; i++) {
+-            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(xx[i], 22)), module, i));
+-            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(xx[i], 76)), module, i + 4));
+-        }
+-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(42, 95)), module, Orbital::SPIN));
+-        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(100, 95)), module, Orbital::LEVEL));
+-        for (int i = 0; i < 8; i++)
+-            addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10 + 17.4 * i, 109)), module, i));
+-        for (int i = 0; i < 4; i++)
+-            addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(45 + 17.4 * i, 122)), module, i));
+-        addChild(createWidget<ScrewSilver>(Vec(0, 0)));
+-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - 15, box.size.y - 15)));
++        // Centers from the supplied panel's labeled placeholders, in millimeters.
++        auto knob = [&](float x, float y, int id) {
++            addParam(createParamCentered<OrbitalsKnob>(mm2px(Vec(x, y)), module, id));
++        };
++        knob(76.97527f, 17.89754f, Orbital::A);
++        knob(76.97527f, 53.27151f, Orbital::B);
++        addParam(createParamCentered<MixKnob>(mm2px(Vec(71.19703f, 35.63756f)), module, Orbital::MIX));
++        knob(76.97527f, 102.26203f, Orbital::PITCH);
++        knob(26.08793f, 85.76049f, Orbital::RADIUS);
++        knob(41.42929f, 85.76049f, Orbital::OFFSET);
++        knob(10.74659f, 85.76049f, Orbital::SHAPE);
++        knob(56.77063f, 85.76049f, Orbital::TILT);
++        knob(76.97527f, 72.97239f, Orbital::SPIN);
++        knob(13.17073f, 116.63393f, Orbital::LEVEL);
++        auto input = [&](float x, float y, int id) {
++            addInput(createInputCentered<OrbitalsPort>(mm2px(Vec(x, y)), module, id));
++        };
++        input(76.97527f, 116.06269f, Orbital::VOCT);
++        input(26.07166f, 99.51354f, Orbital::RADIUS_CV);
++        input(41.41844f, 99.70060f, Orbital::OFFSET_CV);
++        input(82.53787f, 35.25445f, Orbital::MIX_CV);
++        input(56.77618f, 99.76674f, Orbital::TILT_CV);
++        input(76.97500f, 86.63918f, Orbital::SPIN_CV);
++        const float outputs[] = {30.92189f, 40.79958f, 50.67727f, 60.55523f};
++        for (int i = 0; i < 4; ++i)
++            addOutput(createOutputCentered<OrbitalsPort>(mm2px(Vec(outputs[i], 116.27410f)), module, i));
+     }
+ };
+-Model *modelOrbital = createModel<Orbital, OrbitalWidget>("ORBITAL");
++Model *modelOrbital = createModel<Orbital, OrbitalWidget>("Orbitals");
+diff --git c/test/rack.cpp w/test/rack.cpp
+index dc79c1b..1fe173e 100644
+--- c/test/rack.cpp
++++ w/test/rack.cpp
+@@ -14,8 +14,10 @@ int main() {
+     if (plugin.models.size() != 1)
+         throw std::runtime_error("model registration");
+     auto model = plugin.models.front();
++    if (model->slug != "Orbitals")
++        throw std::runtime_error("module slug");
+     auto m = model->createModule();
+-    if (m->params.size() != 10 || m->inputs.size() != 8 || m->outputs.size() != 4)
++    if (m->params.size() != 10 || m->inputs.size() != 6 || m->outputs.size() != 4)
+         throw std::runtime_error("ports");
+     for (auto &o : m->outputs)
+         o.setChannels(1);
+@@ -42,7 +44,7 @@ int main() {
+                     throw std::runtime_error("output");
+         }
+     }
+-    std::cout << "PASS plugin.so dlopen, model factory, 10 params / 8 inputs / 4 outputs, "
++    std::cout << "PASS plugin.so dlopen, model factory, 10 params / 6 inputs / 4 outputs, "
+                  "44.1/48/96k process\n";
+     if (snapshots < 85 || snapshots > 95)
+         throw std::runtime_error("snapshot rate");
+diff --git c/test/visualization.cpp w/test/visualization.cpp
+index 91d0386..beafb49 100644
+--- c/test/visualization.cpp
++++ w/test/visualization.cpp
+@@ -33,6 +33,7 @@ double difference(const DisplayModel &a, const DisplayModel &b) {
+     return d;
+ }
+ int main() {
++    static_assert(DisplayModel::width == 128 && DisplayModel::height == 128, "128x128 display");
+     VisualizationQueue q;
+     VisualizationState s, out;
+     require(!q.latest(out), "empty queue");
+@@ -135,6 +136,19 @@ int main() {
+         other.update(altered, 1. / 30);
+         require(difference(base, other) > .1, "every requested control changes display");
+     }
++    // Adaptive framing keeps the entire trajectory visible, including extreme offsets.
++    for (double radius : {0., 6., 24.})
++        for (double offset : {-24., 0., 24.}) {
++            auto framed = s;
++            framed.path.radius = radius;
++            framed.path.offset = offset;
++            DisplayModel camera;
++            camera.update(framed, 1. / 30.);
++            PreparedPath path(framed.path);
++            for (int i = 0; i < 192; ++i)
++                require(camera.project(path.evaluate(i / 192.)) >= 0, "full trajectory fits camera");
++            require(camera.head >= 0, "head fits camera");
++        }
+     tracking = true;
+     for (int i = 0; i < 100; i++) {
+         s.spin += .01;

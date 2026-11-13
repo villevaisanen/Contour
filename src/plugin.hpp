@@ -7,3 +7,5 @@
 using namespace rack;
 extern Plugin *pluginInstance;
 extern Model *modelContour;
+
+extern Model *modelOrbital;
