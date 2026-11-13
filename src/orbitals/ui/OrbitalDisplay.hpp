@@ -26,19 +26,12 @@ struct OrbitalDisplay : widget::Widget {
         // Browser preview stays deterministic and does not access an audio module.
         display.update(state, dt);
     }
-    void draw(const DrawArgs &args) override {
-        nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 4);
-        nvgFillColor(args.vg, nvgRGB(7, 15, 12));
-        nvgFill(args.vg);
-        nvgStrokeColor(args.vg, nvgRGB(65, 82, 53));
-        nvgStrokeWidth(args.vg, 1);
-        nvgStroke(args.vg);
-    }
+    // Draw only the live phosphor layer over the panel's own screen and grid.
+    // No opaque backing or decorative stroke; the Rack framebuffer keeps alpha.
     void drawLayer(const DrawArgs &args, int layer) override {
         if (layer == 1) {
             nvgSave(args.vg);
-            nvgScissor(args.vg, 2, 2, box.size.x - 4, box.size.y - 4);
+            nvgIntersectScissor(args.vg, 2, 2, box.size.x - 4, box.size.y - 4);
             const float dx = box.size.x / orbital::DisplayModel::width;
             const float dy = box.size.y / orbital::DisplayModel::height;
             // Quantized brightness batches: bounded path count, no per-dot allocations.

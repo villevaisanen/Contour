@@ -57,7 +57,7 @@ struct OrbitalWidget : ModuleWidget {
         knob(10.74659f, 85.76049f, Orbital::SHAPE);
         knob(56.77063f, 85.76049f, Orbital::TILT);
         knob(76.97527f, 72.97239f, Orbital::SPIN);
-        knob(13.17073f, 116.63393f, Orbital::LEVEL);
+        knob(33.112227f, 116.633873f, Orbital::LEVEL);
         auto input = [&](float x, float y, int id) {
             addInput(createInputCentered<OrbitalsPort>(mm2px(Vec(x, y)), module, id));
         };
@@ -67,9 +67,9 @@ struct OrbitalWidget : ModuleWidget {
         input(82.53787f, 35.25445f, Orbital::MIX_CV);
         input(56.77618f, 99.76674f, Orbital::TILT_CV);
         input(76.97500f, 86.63918f, Orbital::SPIN_CV);
-        const float outputs[] = {30.92189f, 40.79958f, 50.67727f, 60.55523f};
-        for (int i = 0; i < 4; ++i)
-            addOutput(createOutputCentered<OrbitalsPort>(mm2px(Vec(outputs[i], 116.27410f)), module, i));
+        const float outputs[] = {50.130866f, 58.160920f};
+        for (int i = 0; i < Orbital::NUM_OUTPUTS; ++i)
+            addOutput(createOutputCentered<OrbitalsPort>(mm2px(Vec(outputs[i], 116.349554f)), module, i));
     }
 };
 Model *modelOrbital = createModel<Orbital, OrbitalWidget>("Orbitals");

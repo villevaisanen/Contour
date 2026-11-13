@@ -1,20 +1,57 @@
 # Filth Assembly — VCV Rack modules
 
-Development version **2.2.0-dev.1**, canonical plugin slug `FilthAssembly`,
+Development version **2.2.0-dev.4**, canonical plugin slug `FilthAssembly`,
 brand **Filth Assembly**. This repository now builds **one plugin containing
 Contour and Orbitals**. The migration is developed on `dev`; it is not a stable
 release or a VCV Library submission.
 
-| Module slug | Module | Manual |
-| --- | --- | --- |
-| `Contour` | 20 HP animated contour paths with four XY modulation sources | [Contour manual](docs/Contour.md) |
-| `Orbitals` | 18 HP direct analytical hydrogen-orbital oscillator with live matrix visualization and XYZ outputs | [Orbitals manual](docs/orbitals/README.md) |
+## Contour
 
-Both modules retain their existing light/dark panels, controls, IDs, DSP and
-state behavior. Orbitals uses signed wavefunctions, not wavetables; quiet or
-silent paths are intentional. Module behavior is unchanged by packaging.
+Contour is a 20 HP modulation source. Animated contour lines in a noise landscape
+guide up to four travellers, each producing a pair of X/Y control voltages.
+Use the evolving paths for filter, timbre, pan and other slow modulation.
+
+![Contour running in dark mode](docs/images/contour-dark.png)
+
+[Contour manual](docs/Contour.md)
+
+## Orbitals
+
+Orbitals is an 18 HP oscillator that samples analytical hydrogen wavefunctions
+along a three-dimensional path. Select and mix two orbital states, shape the
+scan and watch the live dot-matrix field. L (MONO) provides an A/B mix; connecting
+R switches to separate A/L and B/R audio with balance control. Quiet paths are
+possible by design.
+
+![Orbitals running in dark mode](docs/images/orbitals-dark.png)
+
+[Orbitals manual](docs/orbitals/README.md)
+
+## Orbitals audio routing
+
+For mono, connect only **L (MONO)** to your VCA or mixer. MIX / BAL retains the
+previous equal-power A/B mix (including its identical-orbital special case),
+levels and 5 ms coefficient smoothing.
+
+For stereo, connect **L and R** to the left and right channels of a mixer or
+another stereo destination. **An R cable activates stereo mode**, even if L is
+unconnected. A goes only to L and B only to R. MIX / BAL becomes balance:
+center gives both at normal level; turning left attenuates R/B, turning right
+attenuates L/A. The endpoints leave only A/L or B/R. Gains never exceed unity.
+With only R connected you hear B according to balance (silent at full left).
+Cable changes take effect during processing without reloading the module.
+
+MIX CV applies in both modes: +0.1/V, CV limited to ±10 V and the resulting
+control clamped to 0…1. Stereo balance uses a continuous linear attenuation
+curve with 5 ms smoothing. LEVEL and the existing ±5 V safety limit still apply.
+The matrix display continues to show the A/B superposed field, not stereo meters.
+Three DSP engines run continuously to preserve mono and keep channel phase/filter
+histories ready during cable changes; this increases Orbitals CPU use.
 
 ## Build and test
+
+Run these commands from `~/dev/vcv/Filth-Assembly-Modules` (or your clone of
+[Filth-Assembly-Modules](https://github.com/villevaisanen/Filth-Assembly-Modules)).
 
 Requires a C++11 compiler, GNU Make, Rack 2 SDK, jq, tar and zstd. The tested SDK
 and runtime are Rack 2.6.6 on Linux x64. Override the default `~/Rack-SDK` as needed.
@@ -44,7 +81,7 @@ are under `build/` and `dist/`. Assertions remain enabled in tests.
 ## Install a development build
 
 Back up patches and close Rack before changing its plugin installation. Copy
-`dist/FilthAssembly-2.2.0-dev.1-lin-x64.vcvplugin` into Rack's user-folder
+`dist/FilthAssembly-2.2.0-dev.4-lin-x64.vcvplugin` into Rack's user-folder
 `plugins-lin-x64` directory, or use `make install`. Restart Rack and search for
 **Filth Assembly**: both **Contour** and **Orbitals** should appear.
 
@@ -60,8 +97,12 @@ Do not merge to the mainline (`master` in this repository), tag a stable release
 or submit to the VCV Library during this phase. Future modules are separate tasks.
 
 Existing `FilthAssembly/Contour` patches retain their parameter, input, output,
-seed and model identity. Current standalone `FilthAssembly/Orbitals` patches retain
-the same ten parameter, six input and four output IDs. Loading restarts its DSP
+seed and model identity. Orbitals retains
+its ten parameter and six input IDs. Output ID 0 (formerly AUDIO) is now L (MONO);
+ID 1 (formerly X) is now R. Former Y/Z output IDs 2/3 are removed.
+Old X cables now carry B audio and activate stereo mode, changing L to A.
+Y/Z cables cannot be preserved; remove/repatch old coordinate connections manually.
+Full backward patch compatibility is not promised. Loading restarts its DSP
 state as before; only Rack parameters are serialized.
 
 Older `FilthAssemblyOrbital/ORBITAL` patches **are not automatically compatible**.
@@ -75,12 +116,20 @@ commit, uncommitted source snapshot, files, licensing, changes and validation.
 See [changelog](CHANGELOG.md), [Orbitals mathematics](docs/orbitals/MATHEMATICS.md)
 and [historical Orbitals validation](docs/orbitals/VALIDATION.md).
 
-## Validation limits
+## Validation
 
-Only Linux x64 is validated. Native builds are required for other platforms.
-Compilation and generated audio tests are not subjective listening tests. The
-migration record lists completed runtime checks and the remaining manual checklist.
-Existing panel graphics are preserved. No Fugitive or Superposition is included.
+The Orbitals dev.4 visual changes and measurements are recorded in
+[docs/validation-dev.4.md](docs/validation-dev.4.md). The combined-plugin dev.3
+validation remains in [docs/validation-dev.3.md](docs/validation-dev.3.md).
+Only Linux x64 with Rack SDK/runtime 2.6.6 is covered. Builds for other platforms,
+subjective listening and CPU profiling with production patches remain separate
+checks. Existing dev.2 routing and compatibility limitations above still apply.
+
+The visually checked screenshots use the actual module widgets, DSP and Rack's OpenGL
+renderer at the same 4× scale, with live display frames and no cables or menus.
+Orbitals shows dev.4; the unchanged Contour image remains from dev.3.
+Regenerate them with `make test-gui`, then convert the dark `*-theme-1.ppm`
+files in `build/tests/` to PNG without scaling or altering their contents.
 
 ## License
 

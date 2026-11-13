@@ -6,7 +6,9 @@ namespace orbital {
 // Rack-independent display calculation. All storage is fixed at construction; the draw
 // method only reads these cells. Spatial samples are UI-only and never feed synthesis.
 class DisplayModel {
-    static constexpr int samples = 3072;
+    // Eight times the spatial budget compensates for projection collisions and
+    // quantization, including compact clouds at large scan radii. UI thread only.
+    static constexpr int samples = 24576;
     struct Sample {
         Vec3 p;
         float brightness = 0.;

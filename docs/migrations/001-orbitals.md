@@ -1,6 +1,6 @@
 # 001 — Orbitals migration: preflight findings
 
-- Canonical destination: `https://github.com/villevaisanen/Contour`, branch `dev`.
+- Canonical destination: `https://github.com/villevaisanen/Filth-Assembly-Modules`, branch `dev` (repository renamed after the migration).
 - Destination baseline: `ee059f160f27d8f9e4aff38980930f1da35da24e` (`master`, clean). No local/remote dev existed. Mainline remains untouched.
 - Source: `https://github.com/villevaisanen/orbitals`, branch `main`, HEAD `67fca58ef97b6d91c24d8ed68a743c13f2ca17c4`.
 - Source is dirty: current 2.1.2 worktree includes selector/port/visualization/theme updates absent from HEAD. Import this current implementation, not the older HEAD behavior. Exact source hashes, status and file mapping are in [source manifest](001-orbitals-source.json); tracked differences are preserved in [worktree patch](001-orbitals-worktree.patch). No source commits or edits are made.

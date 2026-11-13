@@ -22,7 +22,7 @@ int main() {
   auto* contour=plugin.getModel("Contour");auto* orbitals=plugin.getModel("Orbitals");assert(contour&&orbitals);
   auto* c=contour->createModule();auto* o=orbitals->createModule();
   assert(c->params.size()==9&&c->inputs.size()==6&&c->outputs.size()==8&&c->lights.empty());
-  assert(o->params.size()==10&&o->inputs.size()==6&&o->outputs.size()==4&&o->lights.empty());
+  assert(o->params.size()==10&&o->inputs.size()==6&&o->outputs.size()==2&&o->lights.empty());
   const float mins[]={0,0,0,-5,0,-24,0,-1,-1,0};
   const float maxs[]={13,13,1,5,24,24,1,1,1,1};
   for(int i=0;i<10;++i)assert(o->paramQuantities[i]->minValue==mins[i]&&o->paramQuantities[i]->maxValue==maxs[i]);
@@ -49,5 +49,5 @@ int main() {
   assert(energy>1);delete o;delete c;plugin::plugins.clear();
  }
  dlclose(library);
- std::cout<<"PASS combined FilthAssembly binary: both factories, simultaneous 44.1/48/96kHz, unchanged ports/ranges, Contour seed and both parameter round trips, nonzero Orbitals audio\n";
+ std::cout<<"PASS combined FilthAssembly binary: both factories, simultaneous 44.1/48/96kHz, expected ports/ranges, Contour seed and both parameter round trips, nonzero Orbitals audio\n";
 }

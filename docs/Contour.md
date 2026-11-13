@@ -1,11 +1,11 @@
-# Contour 2.1.4 — Filth Assembly
+# Contour — Filth Assembly 2.2.0-dev.3
 
 Contour is a 20 HP modulation module for VCV Rack 2. Animated contour lines
 from a Perlin-noise landscape guide up to four independent balls. Each ball
 provides a pair of X and Y control voltages, turning the movement on screen
 into evolving modulation for your patch.
 
-![Contour module in VCV Rack](contour_screenshot.png)
+![Contour running in dark mode](images/contour-dark.png)
 
 ## Getting started
 
@@ -18,6 +18,9 @@ for how quickly the landscape changes.
 For an XY display, connect an X/Y pair to the two inputs of a scope and
 select its XY mode.
 
+The runtime panels are `res/contour/Contour_panel_light.svg` and
+`res/contour/Contour_panel_dark.svg`.
+
 The panel follows Rack's light/dark panel preference, including changes made
 while the module is already in a patch.
 
@@ -25,7 +28,7 @@ while the module is already in a patch.
 
 | Control | Function |
 | --- | --- |
-| **Balls** | Sets the number of active balls, from 1 to 4. Default: 2. |
+| **Travellers (Balls)** | Sets the number of active balls, from 1 to 4. Default: 2. |
 | **Contours** | Shows 1–4 contour levels. Each level can contain several loops. Default: 3. |
 | **Evolve** | Sets the landscape's animation speed. Turn fully down to freeze it. Default: 35%. |
 | **Fractality** | Adjusts the landscape's detail and complexity. Default: 40%. |
@@ -78,7 +81,7 @@ previous positions or animation time. Reset generates a new seed.
 ## Installation
 
 For a Linux x64 package, close Rack and copy
-`FilthAssembly-2.1.4-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
+`FilthAssembly-2.2.0-dev.3-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
 Rack's user folder. Use **Help → Open user folder** to locate it. Restart
 Rack, open the module browser, and search for **Contour**.
 
