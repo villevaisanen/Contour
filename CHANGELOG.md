@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.0 — 2026-11-13
+
+- Promote the user-tested and approved 2.2.0-dev.4 implementation to the stable combined Filth Assembly plugin, containing Contour and Orbitals.
+- Include Orbitals mono/stereo L (MONO)/R audio routing, updated panels and control alignment, a transparent visualization overlay and a denser orbital cloud.
+- Include the ORBITAL A light-panel indicator stroke correction, relocated Contour runtime panels, updated documentation/screenshots and renamed repository URLs.
+- Preserve the approved dev.4 DSP, controls, identifiers and patch format; this promotion changes only release metadata and current version documentation.
+- Contour patches retain compatibility. Historical Orbitals coordinate-output and standalone-plugin migration limitations remain as documented below and in the manuals.
+- GitHub Release creation and VCV Library submission remain separate steps.
+
 ## 2.2.0-dev.4 — 2026-11-13 (development only)
 
 - Remove the Orbitals display's decorative green border and opaque backing so the panel grid remains visible.

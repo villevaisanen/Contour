@@ -1,4 +1,4 @@
-# Filth Assembly — Orbitals 2.2.0-dev.4
+# Filth Assembly — Orbitals 2.2.0
 
 A mono/stereo VCV Rack 2 oscillator sampling **signed, normalized analytical hydrogen wavefunctions** along a real-time three-dimensional path. Atomic units: Bohr radius $a_0=1$. Audio synthesis uses neither wavetables nor sampled spatial fields.
 
@@ -76,7 +76,7 @@ make spectrum                 # optional; Python 3 + NumPy
 make install                  # builds package and installs for the current user
 ```
 
-Restart Rack after installation. Linux default plugin directory is `~/.local/share/Rack2/plugins-lin-x64/`. Override `RACK_USER_DIR` when using a custom Rack user folder. The distributable package is `dist/FilthAssembly-2.2.0-dev.4-lin-x64.vcvplugin`. Other platforms require their own SDK build and are not validated here.
+Restart Rack after installation. Linux default plugin directory is `~/.local/share/Rack2/plugins-lin-x64/`. Override `RACK_USER_DIR` when using a custom Rack user folder. The distributable package is `dist/FilthAssembly-2.2.0-lin-x64.vcvplugin`. Other platforms require their own SDK build and are not validated here.
 
 The panel is 18 HP and follows Rack's light/dark panel preference, including live
 changes. Custom jacks use `res/orbitals/jack.svg`; knobs have a fixed `res/orbitals/knob_static.svg`

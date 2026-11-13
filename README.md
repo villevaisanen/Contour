@@ -1,9 +1,9 @@
 # Filth Assembly — VCV Rack modules
 
-Development version **2.2.0-dev.4**, canonical plugin slug `FilthAssembly`,
-brand **Filth Assembly**. This repository now builds **one plugin containing
-Contour and Orbitals**. The migration is developed on `dev`; it is not a stable
-release or a VCV Library submission.
+Stable version **2.2.0**, canonical plugin slug `FilthAssembly`, brand
+**Filth Assembly**. One plugin contains **Contour and Orbitals**. This version
+promotes the user-tested and approved 2.2.0-dev.4 implementation without changes
+to module behavior, DSP, controls, panel artwork or patch serialization.
 
 ## Contour
 
@@ -78,23 +78,24 @@ All source, resources and historical audio-test fixtures are in this repository;
 the standalone Orbitals repository is not a build or test dependency. Build outputs
 are under `build/` and `dist/`. Assertions remain enabled in tests.
 
-## Install a development build
+## Install
 
 Back up patches and close Rack before changing its plugin installation. Copy
-`dist/FilthAssembly-2.2.0-dev.4-lin-x64.vcvplugin` into Rack's user-folder
+`dist/FilthAssembly-2.2.0-lin-x64.vcvplugin` into Rack's user-folder
 `plugins-lin-x64` directory, or use `make install`. Restart Rack and search for
 **Filth Assembly**: both **Contour** and **Orbitals** should appear.
 
 Use **Help → Open user folder** in Rack to locate the folder. A combined package
 replaces the standalone `FilthAssembly` package; two packages with the same plugin
 slug cannot coexist. For development, prefer an isolated Rack user folder rather
-than replacing your working installation. This task does not install globally.
+than replacing your working installation. The build does not install globally unless you run `make install`.
 
 ## Development workflow and compatibility
 
-Work on `dev`, keep commits reviewable, build and run tests before pushing.
-Do not merge to the mainline (`master` in this repository), tag a stable release,
-or submit to the VCV Library during this phase. Future modules are separate tasks.
+Develop on `dev`, keep commits reviewable, and build and run tests before
+merging approved versions into `master`. GitHub Releases and VCV Library updates
+are separate publication steps. The 2.2.0 source preparation does not create a
+GitHub Release or submit a Library update.
 
 Existing `FilthAssembly/Contour` patches retain their parameter, input, output,
 seed and model identity. Orbitals retains

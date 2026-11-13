@@ -1,4 +1,4 @@
-# Contour — Filth Assembly 2.2.0-dev.3
+# Contour — Filth Assembly 2.2.0
 
 Contour is a 20 HP modulation module for VCV Rack 2. Animated contour lines
 from a Perlin-noise landscape guide up to four independent balls. Each ball
@@ -81,7 +81,7 @@ previous positions or animation time. Reset generates a new seed.
 ## Installation
 
 For a Linux x64 package, close Rack and copy
-`FilthAssembly-2.2.0-dev.3-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
+`FilthAssembly-2.2.0-lin-x64.vcvplugin` into the `plugins-lin-x64` directory inside
 Rack's user folder. Use **Help → Open user folder** to locate it. Restart
 Rack, open the module browser, and search for **Contour**.
 
